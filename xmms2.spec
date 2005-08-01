@@ -6,7 +6,7 @@ Release:	0.DR%{_dr}.0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	http://dl.sourceforge.net/xmms2/%{name}-%{version}DR%{_dr}.tar.gz
-URL:		http://xmms2.xmms.se
+URL:		http://xmms2.xmms.se/
 BuildRequires:	SDL-devel
 BuildRequires:	SDL_ttf-devel
 BuildRequires:	alsa-lib-devel
@@ -31,8 +31,8 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %define	_rubyarchdir	%(ruby -r rbconfig -e 'print Config::CONFIG["sitearchdir"]')
 
 %description
-This package contains the daemon that loads plugins and allows clients to
-connect.
+This package contains the daemon that loads plugins and allows clients
+to connect.
 
 %package client-cli
 Summary:	Simple text-ui for xmms2
