@@ -3,7 +3,7 @@ Summary:	Client/server based media player system
 Summary(pl):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
 Version:	0.1
-%define	_dr	1.1
+%define	_dr	2.1
 Release:	0.DR%{_dr}.0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
