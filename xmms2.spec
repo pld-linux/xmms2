@@ -4,7 +4,7 @@ Summary(pl):	System odtwarzania multimediów oparty na architekturze klient/serwe
 Name:		xmms2
 Version:	0.1
 %define	_dr	2.1
-Release:	0.DR%{_dr}.0.1
+Release:	0.DR%{_dr}.0.2
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	http://dl.sourceforge.net/xmms2/%{name}-%{version}DR%{_dr}.tar.gz
@@ -24,7 +24,7 @@ BuildRequires:	libsmbclient-devel
 BuildRequires:	libvorbis-devel
 BuildRequires:	python-Pyrex
 BuildRequires:	python-devel
-BuildRequires:	ruby
+BuildRequires:	ruby-modules
 BuildRequires:	scons >= 0.94
 BuildRequires:	speex-devel
 BuildRequires:	sqlite3-devel
