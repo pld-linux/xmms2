@@ -24,10 +24,12 @@ BuildRequires:	libsmbclient-devel
 BuildRequires:	libvorbis-devel
 BuildRequires:	python-Pyrex
 BuildRequires:	python-devel
+BuildRequires:	rpmbuild(macros) >= 1.277
 BuildRequires:	ruby-modules
 BuildRequires:	scons >= 0.94
 BuildRequires:	speex-devel
 BuildRequires:	sqlite3-devel
+%ruby_mod_ver_requires_eq
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define	_rubyarchdir	%(ruby -r rbconfig -e 'print Config::CONFIG["sitearchdir"]')
