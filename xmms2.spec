@@ -1,6 +1,6 @@
 # XXX: what about -devel? shouldn't -static be separated?
 Summary:	Client/server based media player system
-Summary(pl.UTF-8):   System odtwarzania multimediów oparty na architekturze klient/serwer
+Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
 Version:	0.1
 %define	_dr	2.1
@@ -45,7 +45,7 @@ klientom łączyć się.
 
 %package client-cli
 Summary:	Simple text-ui for xmms2
-Summary(pl.UTF-8):   Prosty tekstowy interfejs dla xmms2
+Summary(pl.UTF-8):	Prosty tekstowy interfejs dla xmms2
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -57,7 +57,7 @@ Prosty tekstowy interfejs dla xmms2.
 
 %package client-sdlvis
 Summary:	Simple SDL visualization client for xmms2
-Summary(pl.UTF-8):   Prosty klient wizualizacji SDL dla xmms2
+Summary(pl.UTF-8):	Prosty klient wizualizacji SDL dla xmms2
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -69,7 +69,7 @@ Prosty klient wizualizacji SDL dla xmms2.
 
 %package client-lib-ecore
 Summary:	ecore client library
-Summary(pl.UTF-8):   Biblioteka kliencka ecore
+Summary(pl.UTF-8):	Biblioteka kliencka ecore
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -81,7 +81,7 @@ Biblioteka kliencka ecore.
 
 %package client-lib-ecore-ruby
 Summary:	Ruby bindings for the xmms2 ecore client library
-Summary(pl.UTF-8):   Wiązania Ruby'ego dla biblioteki klienckiej xmms2 ecore
+Summary(pl.UTF-8):	Wiązania Ruby'ego dla biblioteki klienckiej xmms2 ecore
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-client-lib-ecore = %{version}-%{release}
@@ -94,7 +94,7 @@ Wiązania Ruby'ego dla biblioteki klienckiej xmms2 ecore.
 
 %package client-lib-glib
 Summary:	GLib client library
-Summary(pl.UTF-8):   Biblioteka kliencka GLib
+Summary(pl.UTF-8):	Biblioteka kliencka GLib
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -106,7 +106,7 @@ Biblioteka kliencka GLib.
 
 %package client-lib-glib-ruby
 Summary:	Ruby bindings for the xmms2 GLib client library
-Summary(pl.UTF-8):   Wiązania Ruby'ego dla biblioteki klienckiej xmms2 GLib
+Summary(pl.UTF-8):	Wiązania Ruby'ego dla biblioteki klienckiej xmms2 GLib
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-client-lib-glib = %{version}-%{release}
@@ -119,7 +119,7 @@ Wiązania Ruby'ego dla biblioteki klienckiej xmms2 GLib.
 
 %package client-lib-python
 Summary:	xmms2 Python bindings
-Summary(pl.UTF-8):   Wiązania Pythona do XMMS2
+Summary(pl.UTF-8):	Wiązania Pythona do XMMS2
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 %pyrequires_eq	python-libs
@@ -132,7 +132,7 @@ Wiązania Pythona do xmms2.
 
 %package client-lib-ruby
 Summary:	Ruby bindings for the xmms2 client library
-Summary(pl.UTF-8):   Wiązania Ruby'ego dla biblioteki klienckiej xmms2
+Summary(pl.UTF-8):	Wiązania Ruby'ego dla biblioteki klienckiej xmms2
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -144,7 +144,7 @@ Wiązania Ruby'ego dla biblioteki klienckiej xmms2.
 
 %package input-cd
 Summary:	CD transport and decoder
-Summary(pl.UTF-8):   Transport i dekoder CD
+Summary(pl.UTF-8):	Transport i dekoder CD
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -156,7 +156,7 @@ Ten pakiet umożliwia bezpośrednie czytanie płyt CD przez xmms2.
 
 %package input-flac
 Summary:	FLAC decorer
-Summary(pl.UTF-8):   Dekoder FLAC
+Summary(pl.UTF-8):	Dekoder FLAC
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -168,7 +168,7 @@ Ten pakiet umożliwia dekodowanie FLAC przez xmms2.
 
 %package input-mad
 Summary:	mad-based MP3 decoder
-Summary(pl.UTF-8):   Oparty na mad dekoder MP3
+Summary(pl.UTF-8):	Oparty na mad dekoder MP3
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -180,7 +180,7 @@ Ten pakiet umożliwia dekodowanie MP3 przez xmms2.
 
 %package input-modplug
 Summary:	MOD decoder
-Summary(pl.UTF-8):   Dekoder MOD
+Summary(pl.UTF-8):	Dekoder MOD
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -192,7 +192,7 @@ Ten pakiet umożliwia dekodowanie MOD przez xmms2 poprzez modplug.
 
 %package input-sid
 Summary:	SID decoder
-Summary(pl.UTF-8):   Dekoder SID
+Summary(pl.UTF-8):	Dekoder SID
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -204,7 +204,7 @@ Ten pakiet umożliwia dekodowanie SID przez xmms2.
 
 %package input-speex
 Summary:	speex decoder
-Summary(pl.UTF-8):   Dekoder speex
+Summary(pl.UTF-8):	Dekoder speex
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -216,7 +216,7 @@ Ten pakiet umożliwia dekodowanie speex przez xmms2.
 
 %package input-vorbis
 Summary:	Ogg/Vorbis decoder
-Summary(pl.UTF-8):   Dekoder Ogg/Vorbis
+Summary(pl.UTF-8):	Dekoder Ogg/Vorbis
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -228,7 +228,7 @@ Ten pakiet umożliwia dekodowanie Ogg/Vorbis przez xmms2.
 
 %package input-wav
 Summary:	WAV decoder
-Summary(pl.UTF-8):   Dekoder WAV
+Summary(pl.UTF-8):	Dekoder WAV
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -240,7 +240,7 @@ Ten pakiet umożliwia dekodowanie WAV przez xmms2.
 
 %package output-alsa
 Summary:	ALSA output
-Summary(pl.UTF-8):   Wyjście ALSA
+Summary(pl.UTF-8):	Wyjście ALSA
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -252,7 +252,7 @@ Ten pakiet udostępnia wyjście ALSA dla xmms2.
 
 %package output-jack
 Summary:	JACK output
-Summary(pl.UTF-8):   Wyjście JACK
+Summary(pl.UTF-8):	Wyjście JACK
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -264,7 +264,7 @@ Ten pakiet udostępnia wyjście JACK dla xmms2.
 
 %package output-oss
 Summary:	OSS output
-Summary(pl.UTF-8):   Wyjście OSS
+Summary(pl.UTF-8):	Wyjście OSS
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -276,7 +276,7 @@ Ten pakiet udostępnia wyjście OSS dla xmms2.
 
 %package transport-curl
 Summary:	HTTP curl transport
-Summary(pl.UTF-8):   Transport HTTP poprzez curl
+Summary(pl.UTF-8):	Transport HTTP poprzez curl
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -288,7 +288,7 @@ Ten pakiet zawiera transport HTTP dla xmms2.
 
 %package transport-gnomevfs
 Summary:	GnomeVFS transport
-Summary(pl.UTF-8):   Transport GnomeVFS
+Summary(pl.UTF-8):	Transport GnomeVFS
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -300,7 +300,7 @@ Ten pakiet zawiera transport GnomeVFS dla xmms2.
 
 %package transport-samba
 Summary:	Samba transport
-Summary(pl.UTF-8):   Transport Samba
+Summary(pl.UTF-8):	Transport Samba
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
 
@@ -312,7 +312,7 @@ Ten pakiet zawiera transport Samba dla xmms2.
 
 %package devel
 Summary:	Development libraries and header files
-Summary(pl.UTF-8):   Biblioteki programistyczne i pliki nagłówkowe
+Summary(pl.UTF-8):	Biblioteki programistyczne i pliki nagłówkowe
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
 
