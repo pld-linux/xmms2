@@ -1,13 +1,13 @@
 # XXX: what about -devel? shouldn't -static be separated?
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
+%define	_dr	2.1
 Name:		xmms2
 Version:	0.1
-%define	_dr	2.1
 Release:	0.DR%{_dr}.0.3
 License:	LGPL v2.1
 Group:		Applications/Sound
-Source0:	http://dl.sourceforge.net/xmms2/%{name}-%{version}DR%{_dr}.tar.gz
+Source0:	http://downloads.sourceforge.net/xmms2/%{name}-%{version}DR%{_dr}.tar.gz
 # Source0-md5:	cb12f90b48962109632458df19eab201
 URL:		http://xmms2.xmms.se/
 BuildRequires:	SDL-devel
@@ -30,10 +30,7 @@ BuildRequires:	ruby-modules
 BuildRequires:	scons >= 0.94
 BuildRequires:	speex-devel
 BuildRequires:	sqlite3-devel
-%{?ruby_mod_ver_requires_eq}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
-
-%define	_rubyarchdir	%(ruby -r rbconfig -e 'print Config::CONFIG["sitearchdir"]')
 
 %description
 This package contains the daemon that loads plugins and allows clients
@@ -122,7 +119,7 @@ Summary:	xmms2 Python bindings
 Summary(pl.UTF-8):	Wiązania Pythona do XMMS2
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
-%pyrequires_eq	python-libs
+Requires:	python-libs
 
 %description client-lib-python
 Python bindings for the xmms2 clientlib.
@@ -379,7 +376,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files client-lib-ecore-ruby
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_rubyarchdir}/xmmsclient_ecore.so
+%attr(755,root,root) %{ruby_sitearchdir}/xmmsclient_ecore.so
 
 %files client-lib-glib
 %defattr(644,root,root,755)
@@ -387,7 +384,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files client-lib-glib-ruby
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_rubyarchdir}/xmmsclient_glib.so
+%attr(755,root,root) %{ruby_sitearchdir}/xmmsclient_glib.so
 
 %files client-lib-python
 %defattr(644,root,root,755)
@@ -395,7 +392,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files client-lib-ruby
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_rubyarchdir}/xmmsclient.so
+%attr(755,root,root) %{ruby_sitearchdir}/xmmsclient.so
 
 ### input
 %if 0
