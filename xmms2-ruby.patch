@@ -1,0 +1,101 @@
+--- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.orig	2023-05-07 20:14:21.607909314 +0200
++++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library	2023-05-07 20:14:54.607730539 +0200
+@@ -9,23 +9,23 @@ def config(env):
+ 		# we require ruby 1.8 or greater
+ 		print("Checking for Ruby 1.8 or greater... ", end="")
+ 
+-		version = env.run("ruby -e 'puts VERSION'").strip()
++		version = env.run("ruby -e 'puts RUBY_VERSION'").strip()
+ 		if not version or [int(a) for a in version.split(".")] < [1, 8] :
+ 			print("no")
+ 			raise ConfigError("Need ruby 1.8")
+ 
+ 		print(version)
+ 
+-		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
++		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(RbConfig::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").strip()
+ 		if got_ruby_h != "true" :
+ 			raise ConfigError("bad")
+ 
+-		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
++		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(RbConfig::CONFIG[\"rubyhdrdir\"], 0..1)'"
+ 		env.configcmd(cmd)
+ 		if "RUBYARCHDIR" in env:
+ 			env.librarypath = env["RUBYARCHDIR"]
+ 		else:
+-			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
++			cmd = "ruby -rrbconfig -e 'print RbConfig::CONFIG[\"vendorarchdir\"]'"
+ 			env.librarypath = os.popen(cmd).read().strip()
+ 
+ 		env.Prepend(LIBPATH="src/clients/lib/xmmsclient")
+--- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.ecore.orig	2023-05-07 20:40:30.769408437 +0200
++++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library.ecore	2023-05-07 20:42:13.692184190 +0200
+@@ -15,23 +15,23 @@ def config(env):
+ 		# we require ruby 1.8 or greater
+ 		print("Checking for Ruby 1.8 or greater... ", end="")
+ 
+-		version = env.run("ruby -e 'puts VERSION'").strip()
++		version = env.run("ruby -e 'puts RUBY_VERSION'").strip()
+ 		if not version or [int(a) for a in version.split(".")] < [1, 8] :
+ 			print("no")
+ 			raise ConfigError("")
+ 
+ 		print(version)
+ 
+-		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
++		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(RbConfig::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").strip()
+ 		if got_ruby_h != "true" :
+ 			raise ConfigError("")
+ 
+-		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
++		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(RbConfig::CONFIG[\"rubyhdrdir\"], 0..1)'"
+ 		env.configcmd(cmd)
+ 		if "RUBYARCHDIR" in env:
+ 			env.librarypath = env["RUBYARCHDIR"]
+ 		else:
+-			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
++			cmd = "ruby -rrbconfig -e 'print RbConfig::CONFIG[\"vendorarchdir\"]'"
+ 			env.librarypath = os.popen(cmd).read().strip()
+ 
+ 		env.Prepend(LIBPATH="src/clients/lib/xmmsclient")
+--- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.glib.orig	2023-05-07 20:42:40.065374647 +0200
++++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library.glib	2023-05-07 20:43:31.151764555 +0200
+@@ -9,23 +9,23 @@ def config(env):
+ 		# we require ruby 1.8 or greater
+ 		print("Checking for Ruby 1.8 or greater... ", end="")
+ 
+-		version = env.run("ruby -e 'puts VERSION'").strip()
++		version = env.run("ruby -e 'puts RUBY_VERSION'").strip()
+ 		if not version or [int(a) for a in version.split(".")] < [1, 8] :
+ 			print("no")
+ 			raise ConfigError("bad")
+ 
+ 		print(version)
+ 
+-		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
++		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(RbConfig::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").strip()
+ 		if got_ruby_h != "true" :
+ 			raise ConfigError("bad")
+ 
+-		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
++		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(RbConfig::CONFIG[\"rubyhdrdir\"], 0..1)'"
+ 		env.configcmd(cmd)
+ 		if "RUBYARCHDIR" in env:
+ 			env.librarypath = env["RUBYARCHDIR"]
+ 		else:
+-			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
++			cmd = "ruby -rrbconfig -e 'print RbConfig::CONFIG[\"vendorarchdir\"]'"
+ 			env.librarypath = os.popen(cmd).read().strip()
+ 
+ 		env.pkgconfig("glib-2.0")
+--- xmms2-0.1DR2.1/src/clients/lib/ruby/rb_xmmsclient.c.orig	2023-05-07 21:46:21.478005611 +0200
++++ xmms2-0.1DR2.1/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-07 21:46:25.607983236 +0200
+@@ -523,7 +523,7 @@ static VALUE c_playlist_add (VALUE self,
+ 
+ 	if (!NIL_P (rb_check_string_type (arg)))
+ 		is_str = true;
+-	else if (rb_obj_is_kind_of (arg, rb_cFixnum))
++	else if (rb_obj_is_kind_of (arg, rb_cInteger))
+ 		is_str = false;
+ 	else {
+ 		rb_raise (eXmmsClientError, "unsupported argument");

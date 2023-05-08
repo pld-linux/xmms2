@@ -1,4 +1,11 @@
 # XXX: what about -devel? shouldn't -static be separated?
+#
+# Conditional build:
+%bcond_with	efl	# ecore client library
+%bcond_with	python	# Python module (doesn't build with python3-based scons 4)
+%bcond_without	ruby	# Ruby modules
+%bcond_with	flac	# flac plugin (incompatible with 1.1.3+)
+
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 %define	_dr	2.1
@@ -9,13 +16,19 @@ License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	http://downloads.sourceforge.net/xmms2/%{name}-%{version}DR%{_dr}.tar.gz
 # Source0-md5:	cb12f90b48962109632458df19eab201
+Patch0:		%{name}-tabs.patch
+Patch1:		%{name}-python3.patch
+Patch2:		%{name}-link.patch
+Patch3:		%{name}-modplug.patch
+Patch4:		%{name}-format.patch
+Patch5:		%{name}-ruby.patch
 URL:		http://xmms2.xmms.se/
 BuildRequires:	SDL-devel
 BuildRequires:	SDL_ttf-devel
 BuildRequires:	alsa-lib-devel
-BuildRequires:	curl-devel
-BuildRequires:	ecore-devel
-BuildRequires:	flac-devel
+BuildRequires:	curl-devel >= 7.11.2
+%{?with_efl:BuildRequires:	ecore-devel}
+%{?with_flac:BuildRequires:	flac-devel < 1.1.3}
 BuildRequires:	glib2-devel >= 2.2.0
 BuildRequires:	gnome-vfs2-devel
 BuildRequires:	jack-audio-connection-kit-devel
@@ -23,13 +36,17 @@ BuildRequires:	libmad-devel
 BuildRequires:	libmodplug-devel
 BuildRequires:	libsmbclient-devel
 BuildRequires:	libvorbis-devel
+BuildRequires:	pkgconfig
+%if %{with python}
 BuildRequires:	python-Pyrex >= 0.9.4.2
-BuildRequires:	python-devel
+BuildRequires:	python-devel >= 2.3
+%endif
+BuildRequires:	python3 >= 1:3.2
 BuildRequires:	rpmbuild(macros) >= 1.277
-BuildRequires:	ruby-modules
-BuildRequires:	scons >= 0.94
-BuildRequires:	speex-devel
-BuildRequires:	sqlite3-devel
+%{?with_ruby:BuildRequires:	ruby-modules >= 1:1.8}
+BuildRequires:	scons >= 4
+#BuildRequires:	speex-devel
+BuildRequires:	sqlite3-devel >= 3.2
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -323,25 +340,38 @@ xmms2.
 
 %prep
 %setup -q -n %{name}-%{version}DR%{_dr}
-sed -i xmmsenv.py \
+%patch0 -p1
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
+%patch4 -p1
+%patch5 -p1
+
+%{__sed} -i xmmsenv.py \
 	-e '/os\.path\.join(self\.install_prefix.*"lib/s@"lib@"%{_lib}@'
-sed -i src/clients/lib/python/Library \
+%{__sed} -i src/clients/lib/python/Library \
 	-e 's/get_python_lib()/get_python_lib("false")/'
 
+iconv -f iso-8859-1 -t utf8 doc/xmms2.1 -o doc/xmms2.1.utf8
+%{__mv} doc/xmms2.1.utf8 doc/xmms2.1
+
 %build
+# how to make it called in scons 4 (SourceCode builder has been removed)?
+%{__python} src/xmms/generate-converter.py > src/xmms/converter.c
+
 scons \
-	CC="%{__cc}"		\
-	CXX="%{__cxx}"		\
-	CCFLAGS="%{rpmcflags}"	\
-	PREFIX=%{_prefix}	\
-	MANDIR=%{_mandir}	\
+	CC="%{__cc}" \
+	CXX="%{__cxx}" \
+	CCFLAGS="%{rpmcflags} %{rpmcppflags} $(pkg-config --cflags smbclient)"	\
+	PREFIX=%{_prefix} \
+	MANDIR=%{_mandir} \
 	PKGCONFIGDIR=%{_pkgconfigdir}
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
 scons install \
-	INSTALLDIR=$RPM_BUILD_ROOT
+	--install-sandbox $RPM_BUILD_ROOT
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -350,7 +380,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog README TODO
 %attr(755,root,root) %{_bindir}/xmms2d
-%attr(755,root,root) %{_libdir}/libxmmsclient.so.*
+%attr(755,root,root) %{_libdir}/libxmmsclient.so.0
 %dir %{_libdir}/%{name}
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_diskwrite.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_eq.so
@@ -360,51 +390,67 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_replaygain.so
 %{_datadir}/%{name}
+%{_mandir}/man8/xmms2d.8*
 
 ### clients
 %files client-cli
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/xmms2
+%attr(755,root,root) %{_bindir}/xmms2-mlib-updater
+%{_mandir}/man1/xmms2.1*
 
 %files client-sdlvis
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/sdl-vis
 
+%if %{with efl}
 %files client-lib-ecore
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libxmmsclient-ecore.so.*
+%attr(755,root,root) %{_libdir}/libxmmsclient-ecore.so.0
 
+%if %{with ruby}
 %files client-lib-ecore-ruby
 %defattr(644,root,root,755)
 %attr(755,root,root) %{ruby_sitearchdir}/xmmsclient_ecore.so
+%endif
+%endif
 
 %files client-lib-glib
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libxmmsclient-glib.so.*
+%attr(755,root,root) %{_libdir}/libxmmsclient-glib.so.0
 
+%if %{with ruby}
 %files client-lib-glib-ruby
 %defattr(644,root,root,755)
-%attr(755,root,root) %{ruby_sitearchdir}/xmmsclient_glib.so
+%attr(755,root,root) %{ruby_vendorarchdir}/xmmsclient_glib.so
+%endif
 
+%if %{with python}
 %files client-lib-python
 %defattr(644,root,root,755)
 %attr(755,root,root) %{py_sitedir}/xmmsclient.so
+%endif
 
+%if %{with ruby}
 %files client-lib-ruby
 %defattr(644,root,root,755)
-%attr(755,root,root) %{ruby_sitearchdir}/xmmsclient.so
+%attr(755,root,root) %{ruby_vendorarchdir}/xmmsclient.so
+%endif
 
 ### input
 %if 0
+# no build exists up to DR2.1
 %files input-cd
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_cdtransport.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_cddecoder.so
 %endif
 
+%if %{with flac}
 %files input-flac
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_flac.so
+%endif
 
 %files input-mad
 %defattr(644,root,root,755)
@@ -415,14 +461,18 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_modplug.so
 
 %if 0
+# disabled up to DR2.1
 %files input-sid
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_sid.so
 %endif
 
+%if 0
+# disabled in DR2.1
 %files input-speex
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_speex.so
+%endif
 
 %files input-vorbis
 %defattr(644,root,root,755)
@@ -459,6 +509,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %files devel
 %defattr(644,root,root,755)
-%{_includedir}/%{name}
-%{_libdir}/*.a
-%{_pkgconfigdir}/*
+%attr(755,root,root) %{_libdir}/libxmmsclient.so
+%attr(755,root,root) %{_libdir}/libxmmsclient-glib.so
+%{_includedir}/xmms2
+%{_libdir}/libxmmsclient.a
+%{_libdir}/libxmmsclient-glib.a
+%{_pkgconfigdir}/xmms2-client.pc
+%{_pkgconfigdir}/xmms2-client-ecore.pc
+%{_pkgconfigdir}/xmms2-client-glib.pc
+%{_pkgconfigdir}/xmms2-plugin.pc

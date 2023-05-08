@@ -1,0 +1,391 @@
+--- xmms2-0.1DR2.1/SConstruct.orig	2023-05-06 16:09:29.235573684 +0200
++++ xmms2-0.1DR2.1/SConstruct	2023-05-06 16:18:35.752612948 +0200
+@@ -5,7 +5,6 @@ import sys
+ import SCons
+ import re
+ import string
+-import new
+ from marshal import dump
+ 
+ try:
+@@ -21,7 +20,7 @@ EnsurePythonVersion(2, 1)
+ SConsignFile()
+ 
+ def SimpleListOption(key, help, default=[]):
+-	return(key, help, default, None, lambda val: string.split(val))
++	return(key, help, default, None, lambda val: val.split())
+ 
+ 
+ if sys.platform == 'win32':
+@@ -40,7 +39,7 @@ else:
+ 	else:
+ 		default_cpppath = []
+ 
+-opts = Options("options.cache")
++opts = Variables("options.cache")
+ opts.Add('CC', 'C compiler to use')
+ opts.Add('CXX', 'C++ compiler to use')
+ opts.Add('LD', 'Linker to use')
+@@ -54,9 +53,9 @@ opts.Add('MANDIR', 'manual directory', '
+ opts.Add('RUBYARCHDIR', 'Path to install Ruby bindings')
+ opts.Add('INSTALLDIR', 'install dir')
+ opts.Add('PKGCONFIGDIR', 'Where should we put our .pc files?', '$PREFIX/lib/pkgconfig')
+-opts.Add(BoolOption('SHOWCACHE', 'show what flags that lives inside cache', 0))
++opts.Add(BoolVariable('SHOWCACHE', 'show what flags that lives inside cache', 0))
+ opts.Add(SimpleListOption('EXCLUDE', 'exclude these modules', []))
+-opts.Add(BoolOption('CONFIG', 'run configuration commands again', 0))
++opts.Add(BoolVariable('CONFIG', 'run configuration commands again', 0))
+ 
+ # base CCPATH
+ base_env = xmmsenv.XMMSEnvironment(options=opts)
+@@ -74,24 +73,24 @@ def do_subst_in_file(targetfile, sourcef
+         then all instances of %VERSION% in the file will be replaced with 1.2345 etc.
+         """
+         try:
+-            f = open(sourcefile, 'rb')
++            f = open(sourcefile, 'r', encoding='iso-8859-1')
+             contents = f.read()
+             f.close()
+         except:
+-            raise SCons.Errors.UserError, "Can't read source file %s"%sourcefile
++            raise SCons.Errors.UserError("Can't read source file %s"%sourcefile)
+         for (k,v) in dict.items():
+             contents = re.sub(k, v, contents)
+         try:
+-            f = open(targetfile, 'wb')
++            f = open(targetfile, 'w', encoding='iso-8859-1')
+             f.write(contents)
+             f.close()
+         except:
+-            raise SCons.Errors.UserError, "Can't write target file %s"%targetfile
++            raise SCons.Errors.UserError("Can't write target file %s"%targetfile)
+         return 0 # success
+  
+ def subst_in_file(target, source, env):
+-        if not env.has_key('SUBST_DICT'):
+-            raise SCons.Errors.UserError, "SubstInFile requires SUBST_DICT to be set."
++        if "SUBST_DICT" not in env:
++            raise SCons.Errors.UserError("SubstInFile requires SUBST_DICT to be set.")
+         d = dict(env['SUBST_DICT']) # copy it
+         for (k,v) in d.items():
+             if callable(v):
+@@ -99,7 +98,7 @@ def subst_in_file(target, source, env):
+             elif SCons.Util.is_String(v):
+                 d[k]=env.subst(v)
+             else:
+-                raise SCons.Errors.UserError, "SubstInFile: key %s: %s must be a string or callable"%(k, repr(v))
++                raise SCons.Errors.UserError("SubstInFile: key %s: %s must be a string or callable"%(k, repr(v)))
+         for (t,s) in zip(target, source):
+             return do_subst_in_file(str(t), str(s), d)
+  
+@@ -128,7 +128,8 @@ python_executable = sys.executable
+ b = Builder(action = python_executable + ' src/xmms/generate-converter.py > src/xmms/converter.c')
+ base_env.Depends('#src/xmms/converter.c', 'src/xmms/generate-converter.py')
+ base_env.Depends('#src/xmms/sample.c', 'src/xmms/converter.c')
+-base_env.SourceCode('src/xmms/converter.c', b)
++base_env['BUILDERS']['GenerateConverter'] = b
++conv = base_env.GenerateConverter()
+ 
+ subst_dict = {"%VERSION%":XMMS_VERSION, "%PLATFORM%":"XMMS_OS_" + base_env.platform.upper(), 
+               "%PKGLIBDIR%":base_env["PREFIX"]+"/lib/xmms2",
+@@ -146,7 +145,7 @@ base_env.handle_targets("Program")
+ try:
+ 	dump(base_env.config_cache, open("config.cache", "wb+"))
+ except IOError:
+-	print "Could not dump config.cache!"
++	print("Could not dump config.cache!")
+ 
+ 
+ #### INSTALL HEADERS!
+@@ -181,13 +180,13 @@ for p in pc_files:
+ 	base_env.Install("$PKGCONFIGDIR", p["name"]+".pc")
+ 
+ 
+-print "====================================="
+-print " Configuration printout"
+-print "====================================="
+-print "Enabled plugins:",
++print("=====================================")
++print(" Configuration printout")
++print("=====================================")
++print("Enabled plugins:", end="")
+ foo = []
+ map(lambda x: foo.append(x[x.rindex("/")+1:]), base_env.plugins)
+-print ", ".join(foo)
++print(", ".join(foo))
+ 
+ base_env.add_shared("dismantled-the_swarm_clip.ogg")
+ base_env.Alias('install', base_env.install_targets)
+--- xmms2-0.1DR2.1/xmmsenv.py.orig	2023-05-06 17:20:47.209064583 +0200
++++ xmms2-0.1DR2.1/xmmsenv.py	2023-05-06 17:24:10.881294529 +0200
+@@ -5,15 +5,12 @@ import shutil
+ import gzip
+ from marshal import load
+ from stat import *
+-import operator
+ 
+ global_libpaths = ["/lib", "/usr/lib"]
+ 
+ class ConfigError(Exception):
+ 	pass
+ 
+-any = lambda x: reduce(operator.or_, x)
+-
+ def installFunc(dest, source, env):
+ 	"""Copy file, setting sane permissions"""
+ 	
+@@ -35,7 +35,7 @@ class Target:
+ 		self.globs['platform'] = env.platform
+ 		self.globs['ConfigError'] = ConfigError
+ 
+-		c = compile(file(target).read(), target, "exec")
++		c = compile(open(target).read(), target, "exec")
+ 		eval(c, self.globs)
+ 
+ 		if not isinstance(self.globs.get("target"), str):
+@@ -78,14 +75,14 @@ class XMMSEnvironment(Environment):
+ 	def __init__(self, parent=None, options=None, **kw):
+ 		reconfigure = self.options_changed(options, ['INSTALLPATH'])
+ 		Environment.__init__(self, options=options, ENV=os.environ)
+-		apply(self.Replace, (), kw)
++		self.Replace(**kw)
+ 		self.conf = SCons.SConf.SConf(self)
+ 
+ 		if os.path.isfile("config.cache") and self["CONFIG"] == 0 and not reconfigure:
+ 			try:
+ 				self.config_cache=load(open("config.cache", 'rb+'))
+ 			except:
+-				print "Could not load config.cache!"
++				print("Could not load config.cache!")
+ 				self.config_cache={}
+ 		else:
+ 			self.config_cache={}
+@@ -95,7 +92,7 @@ class XMMSEnvironment(Environment):
+ 		self.programs=[]
+ 		self.install_targets=[]
+ 
+-		if self.has_key("INSTALLDIR"):
++		if "INSTALLDIR" in self:
+ 			self.installdir = os.path.normpath(self["INSTALLDIR"] + '/')
+ 		else:
+ 			self.installdir = ""
+@@ -135,7 +132,7 @@ class XMMSEnvironment(Environment):
+ 		self.install_targets.append(target)
+ 			
+ 	def tryaction(self, cmd):
+-		if self.config_cache.has_key(cmd):
++		if cmd in self.config_cache:
+ 			return self.config_cache[cmd]
+ 
+ 		r = False
+@@ -156,7 +153,7 @@ class XMMSEnvironment(Environment):
+ 		return r
+ 
+ 	def run(self, cmd):
+-		if self.config_cache.has_key(cmd):
++		if cmd in self.config_cache:
+ 			return self.config_cache[cmd]
+ 
+ 		try:
+@@ -178,7 +175,7 @@ class XMMSEnvironment(Environment):
+ 		
+ 
+ 	def configcmd(self, cmd, fail=False):
+-		if self.config_cache.has_key(cmd):
++		if cmd in self.config_cache:
+ 			ret = self.config_cache[cmd]
+ 		else:
+ 			ret = os.popen(cmd).read()
+@@ -186,7 +183,7 @@ class XMMSEnvironment(Environment):
+ 
+ 		if ret == '':
+ 			if fail:
+-				print "Could not find needed group %s!!! Aborting!" % cmd
++				print("Could not find needed group %s!!! Aborting!" % cmd)
+ 				sys.exit(-1)
+ 			raise ConfigError("Command '%s' failed" % cmd)
+ 		ret = ret.strip()
+@@ -195,18 +192,18 @@ class XMMSEnvironment(Environment):
+ 
+ 	def checkheader(self, header, fail=False):
+ 		key = ("HEADER", header)
+-		if not self.config_cache.has_key(key):
++		if key not in self.config_cache:
+ 			self.config_cache[key] = self.conf.CheckCHeader(header)
+ 		if not self.config_cache[key]:
+ 			if fail:
+-				print "Aborting!"
++				print("Aborting!")
+ 				sys.exit(1)
+ 			raise ConfigError("Headerfile '%s' not found" % header)
+ 
+ 	def checklib(self, lib, func, fail=False):
+ 		key = (lib, func)
+ 
+-		if not self.config_cache.has_key(key):
++		if key not in self.config_cache:
+ 			#libtool_flags = None
+ 
+ 			self.config_cache[key] = ""
+@@ -229,7 +226,7 @@ class XMMSEnvironment(Environment):
+ 
+ 		if not self.config_cache[key]:
+ 			if fail:
+-				print "Aborting!"
++				print("Aborting!")
+ 				sys.exit(1)
+ 			raise ConfigError("Symbol '%s' in library '%s' not found" % (func, lib))
+ 
+@@ -345,7 +345,7 @@ class XMMSEnvironment(Environment):
+ 		self.Install(os.path.join(self.includepath,target), source)
+ 
+ 	def add_manpage(self, section, source):
+-		gzip.GzipFile(source+".gz", 'wb',9).write(file(source).read())
++		gzip.GzipFile(source+".gz", 'wb',9).write(open(source, "rb").read())
+ 		self.Install(os.path.join(self.manpath, "man"+str(section)), source+'.gz')
+ 
+ 	def options_changed(self, options, exclude=[]):
+@@ -354,7 +354,7 @@ class XMMSEnvironment(Environment):
+ 		if options.files:
+ 			for filename in options.files:
+ 				if os.path.exists(filename):
+-					execfile(filename, cached)
++					exec(open(filename).read(), cached)
+ 		else:
+ 			return False
+ 	
+@@ -363,8 +360,8 @@ class XMMSEnvironment(Environment):
+ 	
+ 		for option in options.options:
+ 			if option.key in exclude: continue
+-			if options.args.has_key(option.key):
+-				if cached.has_key(option.key):
++			if option.key in options.args:
++				if option.key in cached:
+ 					if options.args[option.key] != cached[option.key]:
+ 						# differnt value
+ 						return True
+@@ -391,7 +391,7 @@ class XMMSEnvironment(Environment):
+ 		This will open the libtool file and read the lines
+ 		that we need.
+ 		"""
+-		f = file(libtoolfile)
++		f = open(libtoolfile)
+ 		line = f.readline()
+ 		ret = {}
+ 		while line:
+@@ -408,7 +408,7 @@ class XMMSEnvironment(Environment):
+ 		targets = [cls(a[1], self) for a in self.potential_targets if a[0].startswith(targettype)]
+ 
+ 		for t in targets:
+-			env = self.Copy()
++			env = self.Clone()
+ 			env.dir = t.dir
+ 
+ 			try:
+@@ -417,6 +414,6 @@ class XMMSEnvironment(Environment):
+ 			try:
+ 				t.config(env)
+ 				t.add(env)
+-			except ConfigError, m:
++			except ConfigError as m:
+ 				self.conf.logstream.write("xmmsscons: File %s reported error '%s' and was disabled.\n" % (t.target, m))
+ 				continue
+--- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.orig	2005-08-18 20:26:23.000000000 +0200
++++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library	2023-05-07 20:13:51.721404557 +0200
+@@ -7,14 +7,14 @@ static=False
+ def config(env):
+ 	if env.tryaction ("ruby --version") :
+ 		# we require ruby 1.8 or greater
+-		print "Checking for Ruby 1.8 or greater... ",
++		print("Checking for Ruby 1.8 or greater... ", end="")
+ 
+ 		version = env.run("ruby -e 'puts VERSION'").strip()
+ 		if not version or [int(a) for a in version.split(".")] < [1, 8] :
+-			print "no"
++			print("no")
+ 			raise ConfigError("Need ruby 1.8")
+ 
+-		print version
++		print(version)
+ 
+ 		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
+ 		if got_ruby_h != "true" :
+@@ -22,7 +22,7 @@ def config(env):
+ 
+ 		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
+ 		env.configcmd(cmd)
+-		if env.has_key("RUBYARCHDIR"):
++		if "RUBYARCHDIR" in env:
+ 			env.librarypath = env["RUBYARCHDIR"]
+ 		else:
+ 			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
+--- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.ecore.orig	2005-08-18 20:26:23.000000000 +0200
++++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library.ecore	2023-05-06 20:36:42.295381814 +0200
+@@ -13,14 +13,14 @@ def ecorelib2sed(lib):
+ def config(env):
+ 	if env.tryaction ("ruby --version") :
+ 		# we require ruby 1.8 or greater
+-		print "Checking for Ruby 1.8 or greater... ",
++		print("Checking for Ruby 1.8 or greater... ", end="")
+ 
+ 		version = env.run("ruby -e 'puts VERSION'").strip()
+ 		if not version or [int(a) for a in version.split(".")] < [1, 8] :
+-			print "no"
++			print("no")
+ 			raise ConfigError("")
+ 
+-		print version
++		print(version)
+ 
+ 		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
+ 		if got_ruby_h != "true" :
+@@ -28,7 +28,7 @@ def config(env):
+ 
+ 		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
+ 		env.configcmd(cmd)
+-		if env.has_key("RUBYARCHDIR"):
++		if "RUBYARCHDIR" in env:
+ 			env.librarypath = env["RUBYARCHDIR"]
+ 		else:
+ 			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
+--- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.glib.orig	2005-08-18 20:26:23.000000000 +0200
++++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library.glib	2023-05-06 20:37:48.775021663 +0200
+@@ -7,14 +7,14 @@ static=False
+ def config(env):
+ 	if env.tryaction ("ruby --version") :
+ 		# we require ruby 1.8 or greater
+-		print "Checking for Ruby 1.8 or greater... ",
++		print("Checking for Ruby 1.8 or greater... ", end="")
+ 
+ 		version = env.run("ruby -e 'puts VERSION'").strip()
+ 		if not version or [int(a) for a in version.split(".")] < [1, 8] :
+-			print "no"
++			print("no")
+ 			raise ConfigError("bad")
+ 
+-		print version
++		print(version)
+ 
+ 		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
+ 		if got_ruby_h != "true" :
+@@ -22,7 +22,7 @@ def config(env):
+ 
+ 		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
+ 		env.configcmd(cmd)
+-		if env.has_key("RUBYARCHDIR"):
++		if "RUBYARCHDIR" in env:
+ 			env.librarypath = env["RUBYARCHDIR"]
+ 		else:
+ 			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
+--- xmms2-0.1DR2.1/src/xmms/Program.orig	2005-08-18 20:26:23.000000000 +0200
++++ xmms2-0.1DR2.1/src/xmms/Program	2023-05-06 21:27:24.565567088 +0200
+@@ -23,7 +23,7 @@ source = ["main.c",
+ 	]
+ 
+ def config(env):
+-	pluginenv = env.Copy()
++	pluginenv = env.Clone()
+ 	env.Prepend(LIBPATH=["src/lib/xmmsipc"])
+ 	env.Prepend(LIBPATH=["src/lib/xmmssocket"])
+ 	env.Append(LIBS=['xmmsipc'])

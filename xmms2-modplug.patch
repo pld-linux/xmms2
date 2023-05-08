@@ -1,0 +1,11 @@
+--- xmms2-0.1DR2.1/src/plugins/modplug/modplug.c.orig	2005-08-18 20:26:23.000000000 +0200
++++ xmms2-0.1DR2.1/src/plugins/modplug/modplug.c	2023-05-06 21:55:20.206489362 +0200
+@@ -11,7 +11,7 @@
+ #include "xmms/xmms_defs.h"
+ #include "xmms/xmms_decoderplugin.h"
+ #include "xmms/xmms_log.h"
+-#include <modplug.h>
++#include <libmodplug/modplug.h>
+ 
+ #include <glib.h>
+ #include <string.h>
