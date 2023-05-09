@@ -8,20 +8,21 @@
 
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
-%define	_dr	2.1
+%define	_dr	2.2
 Name:		xmms2
 Version:	0.1
 Release:	0.DR%{_dr}.0.3
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	http://downloads.sourceforge.net/xmms2/%{name}-%{version}DR%{_dr}.tar.gz
-# Source0-md5:	cb12f90b48962109632458df19eab201
+# Source0-md5:	e1f8c5a0ed5be0913eae12eb464e7e3b
 Patch0:		%{name}-tabs.patch
 Patch1:		%{name}-python3.patch
 Patch2:		%{name}-link.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-format.patch
 Patch5:		%{name}-ruby.patch
+Patch6:		%{name}-sqlite.patch
 URL:		http://xmms2.xmms.se/
 BuildRequires:	SDL-devel
 BuildRequires:	SDL_ttf-devel
@@ -346,6 +347,7 @@ xmms2.
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
+%patch6 -p1
 
 %{__sed} -i xmmsenv.py \
 	-e '/os\.path\.join(self\.install_prefix.*"lib/s@"lib@"%{_lib}@'
