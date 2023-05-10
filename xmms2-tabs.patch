@@ -1,5 +1,5 @@
---- xmms2-0.2DrAlban/SConstruct.orig	2005-12-18 17:35:27.000000000 +0100
-+++ xmms2-0.2DrAlban/SConstruct	2023-05-09 21:43:50.776017416 +0200
+--- xmms2-0.2DrCox/SConstruct.orig	2006-02-21 19:19:52.000000000 +0100
++++ xmms2-0.2DrCox/SConstruct	2023-05-10 21:34:24.027685454 +0200
 @@ -72,8 +72,8 @@ base_env.Append(CPPPATH=["#src/include"]
  Help(opts.GenerateHelpText(base_env))
  
@@ -11,22 +11,24 @@
          then all instances of %VERSION% in the file will be replaced with 1.2345 etc.
          """
          try:
-@@ -135,10 +135,10 @@ base_env.Depends('#src/xmms/sample.c', '
- base_env.SourceCode('src/xmms/converter.c', b)
+@@ -138,11 +138,11 @@ base_env.handle_targets("Library")
+ base_env.handle_targets("Program")
  
- subst_dict = {"%VERSION%":XMMS_VERSION, "%PLATFORM%":"XMMS_OS_" + base_env.platform.upper(), 
+ subst_dict = {"%VERSION%":XMMS_VERSION, "%PLATFORM%":"XMMS_OS_" + base_env.platform.upper().replace("-", ""), 
 -	      "%PKGLIBDIR%":base_env["PREFIX"]+"/lib/xmms2",
 -	      "%BINDIR%":base_env["PREFIX"]+"/bin",
 -	      "%SHAREDDIR%":base_env.sharepath,
--	      "%PREFIX%":base_env.install_prefix}
+-	      "%PREFIX%":base_env.install_prefix,
+-	      "%DEFAULT_OUTPUT%":xmmsenv.default_output[1],
 +              "%PKGLIBDIR%":base_env["PREFIX"]+"/lib/xmms2",
 +              "%BINDIR%":base_env["PREFIX"]+"/bin",
 +              "%SHAREDDIR%":base_env.sharepath,
-+              "%PREFIX%":base_env.install_prefix}
++              "%PREFIX%":base_env.install_prefix,
++              "%DEFAULT_OUTPUT%":xmmsenv.default_output[1],
+ }
  
  config = base_env.SubstInFile("src/include/xmms/xmms_defs.h", "src/include/xmms/xmms_defs.h.in", SUBST_DICT=subst_dict)
- 
-@@ -160,7 +160,7 @@ def scan_headers(name):
+@@ -162,7 +162,7 @@ def scan_headers(name):
  		newf = dir+"/"+d
  		if os.path.isfile(newf) and newf.endswith('.h'):
  			base_env.add_header(name, newf)
@@ -35,7 +37,7 @@
  scan_headers("xmmsc")
  scan_headers("xmms")
  scan_headers("xmmsclient")
-@@ -185,9 +185,9 @@ base_env.add_manpage(8, 'doc/xmms2d.8')
+@@ -187,9 +187,9 @@ base_env.add_manpage(8, 'doc/xmms2d.8')
  #### Generate pc files.
  
  pc_files = [{"name": "xmms2-plugin", "lib":""}, 

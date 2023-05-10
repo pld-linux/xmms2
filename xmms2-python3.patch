@@ -1,5 +1,5 @@
---- xmms2-0.2DrBombay/SConstruct.orig	2023-05-10 20:46:53.629794051 +0200
-+++ xmms2-0.2DrBombay/SConstruct	2023-05-10 20:54:00.570814446 +0200
+--- xmms2-0.2DrCox/SConstruct.orig	2023-05-10 21:34:42.437585719 +0200
++++ xmms2-0.2DrCox/SConstruct	2023-05-10 21:37:23.510046448 +0200
 @@ -5,7 +5,6 @@ import sys
  import SCons
  import re
@@ -86,9 +86,9 @@
 +base_env['BUILDERS']['GenerateConverter'] = b
 +conv = base_env.GenerateConverter()
  
- subst_dict = {"%VERSION%":XMMS_VERSION, "%PLATFORM%":"XMMS_OS_" + base_env.platform.upper(), 
-               "%PKGLIBDIR%":base_env["PREFIX"]+"/lib/xmms2",
-@@ -150,7 +150,7 @@ base_env.handle_targets("Program")
+ base_env.handle_targets("Library")
+ base_env.handle_targets("Program")
+@@ -152,7 +152,7 @@ config = base_env.SubstInFile("src/inclu
  try:
  	dump(base_env.config_cache, open("config.cache", "wb+"))
  except IOError:
@@ -97,7 +97,7 @@
  
  
  #### INSTALL HEADERS!
-@@ -197,13 +197,13 @@ for p in pc_files:
+@@ -199,14 +199,14 @@ for p in pc_files:
  	base_env.Install("$PKGCONFIGDIR", p["name"]+".pc")
  
  
@@ -110,15 +110,17 @@
 +print("=====================================")
 +print("Enabled plugins:", end="")
  foo = []
- map(lambda x: foo.append(x[x.rindex("/")+1:]), base_env.plugins)
+ map(lambda x: foo.append(x[x.rindex(os.sep)+1:]), base_env.plugins)
 -print ", ".join(foo)
+-print "Default output:", xmmsenv.default_output[1]
 +print(", ".join(foo))
++print("Default output:", xmmsenv.default_output[1])
  
  base_env.add_shared("mind.in.a.box-lament_snipplet.ogg")
  base_env.Alias('install', base_env.install_targets)
---- xmms2-0.2DrBombay/xmmsenv.py.orig	2023-05-10 20:54:22.264030257 +0200
-+++ xmms2-0.2DrBombay/xmmsenv.py	2023-05-10 20:58:35.045994153 +0200
-@@ -5,15 +5,12 @@ import shutil
+--- xmms2-0.2DrCox/xmmsenv.py.orig	2023-05-10 21:37:46.929919571 +0200
++++ xmms2-0.2DrCox/xmmsenv.py	2023-05-10 21:38:22.049729311 +0200
+@@ -5,7 +5,6 @@ import shutil
  import gzip
  from marshal import load
  from stat import *
@@ -126,6 +128,7 @@
  
  global_libpaths = ["/lib", "/usr/lib"]
  
+@@ -14,8 +13,6 @@ default_output = (-1, "unknown")
  class ConfigError(Exception):
  	pass
  
@@ -134,7 +137,7 @@
  def installFunc(dest, source, env):
  	"""Copy file, setting sane permissions"""
  	
-@@ -38,7 +35,7 @@ class Target:
+@@ -40,7 +37,7 @@ class Target:
  		self.globs['platform'] = env.platform
  		self.globs['ConfigError'] = ConfigError
  
@@ -143,7 +146,7 @@
  		eval(c, self.globs)
  
  		if not isinstance(self.globs.get("target"), str):
-@@ -78,14 +75,14 @@ class XMMSEnvironment(Environment):
+@@ -86,14 +83,14 @@ class XMMSEnvironment(Environment):
  	def __init__(self, parent=None, options=None, **kw):
  		reconfigure = self.options_changed(options, ['INSTALLPATH'])
  		Environment.__init__(self, options=options, ENV=os.environ)
@@ -160,7 +163,7 @@
  				self.config_cache={}
  		else:
  			self.config_cache={}
-@@ -95,7 +92,7 @@ class XMMSEnvironment(Environment):
+@@ -103,7 +100,7 @@ class XMMSEnvironment(Environment):
  		self.programs=[]
  		self.install_targets=[]
  
@@ -169,7 +172,7 @@
  			self.installdir = os.path.normpath(self["INSTALLDIR"] + '/')
  		else:
  			self.installdir = ""
-@@ -124,7 +121,7 @@ class XMMSEnvironment(Environment):
+@@ -134,7 +131,7 @@ class XMMSEnvironment(Environment):
  			self.platform = sys.platform
  
  		def gzipper(target, source, env):
@@ -178,7 +181,7 @@
  		self['BUILDERS']['GZipper'] = SCons.Builder.Builder(action=SCons.Action.Action(gzipper))
  		
  		if self.platform == 'darwin':
-@@ -140,7 +137,7 @@ class XMMSEnvironment(Environment):
+@@ -150,7 +147,7 @@ class XMMSEnvironment(Environment):
  		self.install_targets.append(target)
  			
  	def tryaction(self, cmd):
@@ -187,7 +190,7 @@
  			return self.config_cache[cmd]
  
  		r = False
-@@ -161,7 +158,7 @@ class XMMSEnvironment(Environment):
+@@ -171,7 +168,7 @@ class XMMSEnvironment(Environment):
  		return r
  
  	def run(self, cmd):
@@ -196,7 +199,7 @@
  			return self.config_cache[cmd]
  
  		try:
-@@ -183,7 +180,7 @@ class XMMSEnvironment(Environment):
+@@ -193,7 +190,7 @@ class XMMSEnvironment(Environment):
  		
  
  	def configcmd(self, cmd, fail=False):
@@ -205,7 +208,7 @@
  			ret = self.config_cache[cmd]
  		else:
  			ret = os.popen(cmd).read()
-@@ -191,7 +188,7 @@ class XMMSEnvironment(Environment):
+@@ -201,7 +198,7 @@ class XMMSEnvironment(Environment):
  
  		if ret == '':
  			if fail:
@@ -214,7 +217,7 @@
  				sys.exit(-1)
  			raise ConfigError("Command '%s' failed" % cmd)
  		ret = ret.strip()
-@@ -205,18 +202,18 @@ class XMMSEnvironment(Environment):
+@@ -215,18 +212,18 @@ class XMMSEnvironment(Environment):
  		else:
  			key = ("HEADER", header)
  
@@ -236,7 +239,7 @@
  			#libtool_flags = None
  
  			self.config_cache[key] = ""
-@@ -239,7 +236,7 @@ class XMMSEnvironment(Environment):
+@@ -249,7 +246,7 @@ class XMMSEnvironment(Environment):
  
  		if not self.config_cache[key]:
  			if fail:
@@ -245,7 +248,7 @@
  				sys.exit(1)
  			raise ConfigError("Symbol '%s' in library '%s' not found" % (func, lib))
  
-@@ -370,14 +367,14 @@ class XMMSEnvironment(Environment):
+@@ -380,14 +377,14 @@ class XMMSEnvironment(Environment):
  		if options.files:
  			for filename in options.files:
  				if os.path.exists(filename):
@@ -263,7 +266,7 @@
  					if options.args[option.key] != cached[option.key]:
  						# differnt value
  						return True
-@@ -407,7 +404,7 @@ class XMMSEnvironment(Environment):
+@@ -417,7 +414,7 @@ class XMMSEnvironment(Environment):
  		This will open the libtool file and read the lines
  		that we need.
  		"""
@@ -272,7 +275,7 @@
  		line = f.readline()
  		ret = {}
  		while line:
-@@ -424,12 +421,12 @@ class XMMSEnvironment(Environment):
+@@ -434,12 +431,12 @@ class XMMSEnvironment(Environment):
  		targets = [cls(a[1], self) for a in self.potential_targets if a[0].startswith(targettype)]
  
  		for t in targets:
@@ -385,9 +388,9 @@
  	env.Prepend(LIBPATH=["src/lib/xmmsipc"])
  	env.Prepend(LIBPATH=["src/lib/xmmssocket"])
  	env.Append(LIBS=['xmmsipc'])
---- xmms2-0.2DrBombay/gittools.py.orig	2006-01-13 12:54:27.000000000 +0100
-+++ xmms2-0.2DrBombay/gittools.py	2023-05-10 21:02:19.834776368 +0200
-@@ -1,24 +1,24 @@
+--- xmms2-0.2DrCox/gittools.py.orig	2023-05-10 21:38:46.116265598 +0200
++++ xmms2-0.2DrCox/gittools.py	2023-05-10 21:39:29.229365368 +0200
+@@ -1,9 +1,9 @@
  import os
 -import sha
 +import hashlib
@@ -400,10 +403,7 @@
      h.update("blob %d\0" % len(data))
      h.update(data)
      return h.hexdigest()
- 
- def git_info():
--    commithash = file('.git/HEAD').read().strip()
-+    commithash = open('.git/HEAD').read().strip()
+@@ -13,12 +13,12 @@ def git_info():
      if os.getuid() == os.stat(".git/index").st_uid:
          os.system('git-update-index --refresh >/dev/null')
      else:

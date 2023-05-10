@@ -9,12 +9,12 @@
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.2DrBombay
+Version:	0.2DrCox
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
-Source0:	http://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	2477865f4e609f58e00d4ab27d8c4fbf
+Source0:	https://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
+# Source0-md5:	b93b26d7c71c686595ad4bf1e212e95d
 Patch0:		%{name}-tabs.patch
 Patch1:		%{name}-python3.patch
 Patch2:		%{name}-link.patch
@@ -50,6 +50,7 @@ BuildRequires:	scons >= 4
 BuildRequires:	sed >= 4.0
 #BuildRequires:	speex-devel
 BuildRequires:	sqlite3-devel >= 3.2
+Obsoletes:	xmms2-input-cd < 0.2DrCox
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -158,18 +159,6 @@ Ruby bindings for the xmms2 client library.
 
 %description client-lib-ruby -l pl.UTF-8
 Wiązania Ruby'ego dla biblioteki klienckiej xmms2.
-
-%package input-cd
-Summary:	CD transport and decoder
-Summary(pl.UTF-8):	Transport i dekoder CD
-Group:		Applications/Sound
-Requires:	%{name} = %{version}-%{release}
-
-%description input-cd
-This package enables direct reading of CDs for xmms2.
-
-%description input-cd -l pl.UTF-8
-Ten pakiet umożliwia bezpośrednie czytanie płyt CD przez xmms2.
 
 %package input-faad
 Summary:	AAC decorer
@@ -476,14 +465,6 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 ### input
-%if 0
-# no build exists up to DR2.1
-%files input-cd
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_cdtransport.so
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_cddecoder.so
-%endif
-
 %files input-faad
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_faad.so
