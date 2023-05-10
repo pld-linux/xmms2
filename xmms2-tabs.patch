@@ -1,6 +1,6 @@
---- xmms2-0.1DR2.1/SConstruct.orig	2005-08-18 20:26:23.000000000 +0200
-+++ xmms2-0.1DR2.1/SConstruct	2023-05-06 14:46:41.612485598 +0200
-@@ -69,8 +69,8 @@ base_env.Append(CPPPATH=["#src/include"]
+--- xmms2-0.2DrAlban/SConstruct.orig	2005-12-18 17:35:27.000000000 +0100
++++ xmms2-0.2DrAlban/SConstruct	2023-05-09 21:43:50.776017416 +0200
+@@ -72,8 +72,8 @@ base_env.Append(CPPPATH=["#src/include"]
  Help(opts.GenerateHelpText(base_env))
  
  def do_subst_in_file(targetfile, sourcefile, dict):
@@ -11,20 +11,22 @@
          then all instances of %VERSION% in the file will be replaced with 1.2345 etc.
          """
          try:
-@@ -132,9 +132,9 @@ base_env.Depends('#src/xmms/sample.c', '
+@@ -135,10 +135,10 @@ base_env.Depends('#src/xmms/sample.c', '
  base_env.SourceCode('src/xmms/converter.c', b)
  
  subst_dict = {"%VERSION%":XMMS_VERSION, "%PLATFORM%":"XMMS_OS_" + base_env.platform.upper(), 
 -	      "%PKGLIBDIR%":base_env["PREFIX"]+"/lib/xmms2",
+-	      "%BINDIR%":base_env["PREFIX"]+"/bin",
 -	      "%SHAREDDIR%":base_env.sharepath,
 -	      "%PREFIX%":base_env.install_prefix}
 +              "%PKGLIBDIR%":base_env["PREFIX"]+"/lib/xmms2",
++              "%BINDIR%":base_env["PREFIX"]+"/bin",
 +              "%SHAREDDIR%":base_env.sharepath,
 +              "%PREFIX%":base_env.install_prefix}
  
  config = base_env.SubstInFile("src/include/xmms/xmms_defs.h", "src/include/xmms/xmms_defs.h.in", SUBST_DICT=subst_dict)
  
-@@ -156,7 +156,7 @@ def scan_headers(name):
+@@ -160,7 +160,7 @@ def scan_headers(name):
  		newf = dir+"/"+d
  		if os.path.isfile(newf) and newf.endswith('.h'):
  			base_env.add_header(name, newf)
@@ -33,7 +35,7 @@
  scan_headers("xmmsc")
  scan_headers("xmms")
  scan_headers("xmmsclient")
-@@ -169,9 +169,9 @@ base_env.add_manpage(8, 'doc/xmms2d.8')
+@@ -185,9 +185,9 @@ base_env.add_manpage(8, 'doc/xmms2d.8')
  #### Generate pc files.
  
  pc_files = [{"name": "xmms2-plugin", "lib":""}, 
@@ -46,18 +48,14 @@
  
  for p in pc_files:
  	d = subst_dict.copy()
---- xmms2-0.1DR2.1/xmmsenv.py.orig	2005-08-18 20:26:23.000000000 +0200
-+++ xmms2-0.1DR2.1/xmmsenv.py	2023-05-06 15:04:57.296549768 +0200
-@@ -347,9 +347,9 @@ class XMMSEnvironment(Environment):
+--- xmms2-0.2DrAlban/xmmsenv.py.orig	2023-05-09 21:16:22.821611818 +0200
++++ xmms2-0.2DrAlban/xmmsenv.py	2023-05-09 21:45:23.205516682 +0200
+@@ -352,7 +352,7 @@ class XMMSEnvironment(Environment):
  	def add_header(self, target, source):
  		self.Install(os.path.join(self.includepath,target), source)
  
 -        def add_manpage(self, section, source):
--                gzip.GzipFile(source+".gz", 'wb',9).write(file(source).read())
--                self.Install(os.path.join(self.manpath, "man"+str(section)), source+'.gz')
 +	def add_manpage(self, section, source):
-+		gzip.GzipFile(source+".gz", 'wb',9).write(file(source).read())
-+		self.Install(os.path.join(self.manpath, "man"+str(section)), source+'.gz')
+ 		self.GZipper(source + '.gz', source)
+ 		self.Install(os.path.join(self.manpath, "man"+str(section)), source+'.gz')
  
- 	def options_changed(self, options, exclude=[]):
- 		"""NOTE: This method does not catch changed defaults."""

@@ -8,21 +8,20 @@
 
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
-%define	_dr	2.2
 Name:		xmms2
-Version:	0.1
-Release:	0.DR%{_dr}.0.3
+Version:	0.2DrAlban
+Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
-Source0:	http://downloads.sourceforge.net/xmms2/%{name}-%{version}DR%{_dr}.tar.gz
-# Source0-md5:	e1f8c5a0ed5be0913eae12eb464e7e3b
+Source0:	http://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
+# Source0-md5:	172368d5d03d3f309641f82aef7490f5
 Patch0:		%{name}-tabs.patch
 Patch1:		%{name}-python3.patch
 Patch2:		%{name}-link.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-format.patch
 Patch5:		%{name}-ruby.patch
-Patch6:		%{name}-sqlite.patch
+Patch6:		%{name}-sid-update.patch
 URL:		http://xmms2.xmms.se/
 BuildRequires:	SDL-devel
 BuildRequires:	SDL_ttf-devel
@@ -35,6 +34,7 @@ BuildRequires:	gnome-vfs2-devel
 BuildRequires:	jack-audio-connection-kit-devel
 BuildRequires:	libmad-devel
 BuildRequires:	libmodplug-devel
+BuildRequires:	libsidplay2-devel
 BuildRequires:	libsmbclient-devel
 BuildRequires:	libvorbis-devel
 BuildRequires:	pkgconfig
@@ -46,6 +46,7 @@ BuildRequires:	python3 >= 1:3.2
 BuildRequires:	rpmbuild(macros) >= 1.277
 %{?with_ruby:BuildRequires:	ruby-modules >= 1:1.8}
 BuildRequires:	scons >= 4
+BuildRequires:	sed >= 4.0
 #BuildRequires:	speex-devel
 BuildRequires:	sqlite3-devel >= 3.2
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -340,7 +341,7 @@ Ten pakiet zawiera biblioteki programistyczne i pliki nagłówkowe dla
 xmms2.
 
 %prep
-%setup -q -n %{name}-%{version}DR%{_dr}
+%setup -q
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
@@ -349,10 +350,17 @@ xmms2.
 %patch5 -p1
 %patch6 -p1
 
+%{__sed} -i xmms2.pc.in \
+	-e '/^libdir/ s,/lib$,/%{_lib},'
+%{__sed} -i SConstruct \
+	-e '/%PKGLIBDIR%/ s,/lib/,/%{_lib}/,'
 %{__sed} -i xmmsenv.py \
 	-e '/os\.path\.join(self\.install_prefix.*"lib/s@"lib@"%{_lib}@'
 %{__sed} -i src/clients/lib/python/Library \
 	-e 's/get_python_lib()/get_python_lib("false")/'
+
+# avoid invalid version in .pc files
+%{__sed} -i -e '/^XMMS_VERSION/ s/ \(Dr[^ ]*\) (git commit: %s%s)/\1/; s/ % .*//;' SConstruct
 
 iconv -f iso-8859-1 -t utf8 doc/xmms2.1 -o doc/xmms2.1.utf8
 %{__mv} doc/xmms2.1.utf8 doc/xmms2.1
@@ -381,6 +389,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS ChangeLog README TODO
+%attr(755,root,root) %{_bindir}/xmms2-launcher
 %attr(755,root,root) %{_bindir}/xmms2d
 %attr(755,root,root) %{_libdir}/libxmmsclient.so.0
 %dir %{_libdir}/%{name}
@@ -389,8 +398,12 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_file.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_html.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_m3u.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_null.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_replaygain.so
+# TODO: separate
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_faad.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_musepack.so
 %{_datadir}/%{name}
 %{_mandir}/man8/xmms2d.8*
 
@@ -398,6 +411,7 @@ rm -rf $RPM_BUILD_ROOT
 %files client-cli
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/xmms2
+%attr(755,root,root) %{_bindir}/xmms2-et
 %attr(755,root,root) %{_bindir}/xmms2-mlib-updater
 %{_mandir}/man1/xmms2.1*
 
@@ -462,12 +476,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_modplug.so
 
-%if 0
-# disabled up to DR2.1
 %files input-sid
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_sid.so
-%endif
 
 %if 0
 # disabled in DR2.1

@@ -88,9 +88,18 @@
  			env.librarypath = os.popen(cmd).read().strip()
  
  		env.pkgconfig("glib-2.0")
---- xmms2-0.1DR2.1/src/clients/lib/ruby/rb_xmmsclient.c.orig	2023-05-07 21:46:21.478005611 +0200
-+++ xmms2-0.1DR2.1/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-07 21:46:25.607983236 +0200
-@@ -523,7 +523,7 @@ static VALUE c_playlist_add (VALUE self,
+--- xmms2-0.2DrAlban/src/clients/lib/ruby/rb_xmmsclient.c.orig	2005-12-18 17:35:27.000000000 +0100
++++ xmms2-0.2DrAlban/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-09 22:35:33.975872606 +0200
+@@ -511,7 +511,7 @@ static VALUE c_playlist_add (VALUE self,
+ 
+ 	if (!NIL_P (rb_check_string_type (arg)))
+ 		is_str = true;
+-	else if (rb_obj_is_kind_of (arg, rb_cFixnum))
++	else if (rb_obj_is_kind_of (arg, rb_cInteger))
+ 		is_str = false;
+ 	else {
+ 		rb_raise (eXmmsClientError, "unsupported argument");
+@@ -538,7 +538,7 @@ static VALUE c_playlist_insert (VALUE se
  
  	if (!NIL_P (rb_check_string_type (arg)))
  		is_str = true;

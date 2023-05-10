@@ -1,9 +1,9 @@
---- xmms2-0.1DR2.1/src/xmms/main.c.orig	2005-08-18 20:26:23.000000000 +0200
-+++ xmms2-0.1DR2.1/src/xmms/main.c	2023-05-06 22:09:11.418652966 +0200
-@@ -323,7 +323,7 @@ Options:\n\
- 	-p <foo>	Search for plugins in directory 'foo'\n\
+--- xmms2-0.2DrAlban/src/xmms/main.c.orig	2023-05-09 21:49:50.690734257 +0200
++++ xmms2-0.2DrAlban/src/xmms/main.c	2023-05-09 21:50:24.180552827 +0200
+@@ -383,7 +383,7 @@ Options:\n\
  	-h|--help	Print this help\n\
- 	-c|--conf=<file> Specify alternate configuration file\n";
+ 	-c|--conf=<file> Specify alternate configuration file\n\
+ 	-s|--status-fd=fd Specify a filedescriptor to write to when started\n";
 -       printf(usageText);
 +       fputs(usageText, stdout);
  }
