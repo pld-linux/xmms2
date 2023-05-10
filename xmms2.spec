@@ -9,17 +9,16 @@
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.2DrAlban
+Version:	0.2DrBombay
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	http://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	172368d5d03d3f309641f82aef7490f5
+# Source0-md5:	2477865f4e609f58e00d4ab27d8c4fbf
 Patch0:		%{name}-tabs.patch
 Patch1:		%{name}-python3.patch
 Patch2:		%{name}-link.patch
 Patch3:		%{name}-modplug.patch
-Patch4:		%{name}-format.patch
 Patch5:		%{name}-ruby.patch
 Patch6:		%{name}-sid-update.patch
 URL:		http://xmms2.xmms.se/
@@ -373,7 +372,6 @@ xmms2.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
-%patch4 -p1
 %patch5 -p1
 %patch6 -p1
 
