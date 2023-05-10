@@ -28,12 +28,14 @@ BuildRequires:	SDL_ttf-devel
 BuildRequires:	alsa-lib-devel
 BuildRequires:	curl-devel >= 7.11.2
 %{?with_efl:BuildRequires:	ecore-devel}
+BuildRequires:	faad2-devel >= 2
 %{?with_flac:BuildRequires:	flac-devel < 1.1.3}
 BuildRequires:	glib2-devel >= 2.2.0
 BuildRequires:	gnome-vfs2-devel
 BuildRequires:	jack-audio-connection-kit-devel
 BuildRequires:	libmad-devel
 BuildRequires:	libmodplug-devel
+BuildRequires:	libmpcdec-devel
 BuildRequires:	libsidplay2-devel
 BuildRequires:	libsmbclient-devel
 BuildRequires:	libvorbis-devel
@@ -170,6 +172,19 @@ This package enables direct reading of CDs for xmms2.
 %description input-cd -l pl.UTF-8
 Ten pakiet umożliwia bezpośrednie czytanie płyt CD przez xmms2.
 
+%package input-faad
+Summary:	AAC decorer
+Summary(pl.UTF-8):	Dekoder AAC
+Group:		Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description input-faad
+This package enables AAC decoding using faad2 library for xmms2.
+
+%description input-faad -l pl.UTF-8
+Ten pakiet umożliwia dekodowanie plików AAC przez xmms2 przy użyciu
+biblioteki faad2.
+
 %package input-flac
 Summary:	FLAC decorer
 Summary(pl.UTF-8):	Dekoder FLAC
@@ -205,6 +220,18 @@ This package enables MOD decoding through modplug decoding for xmms2.
 
 %description input-modplug -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie MOD przez xmms2 poprzez modplug.
+
+%package input-musepack
+Summary:	MPC decoder
+Summary(pl.UTF-8):	Dekoder MPC
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description input-musepack
+This package enables MPC decoding for xmms2.
+
+%description input-musepack -l pl.UTF-8
+Ten pakiet umożliwia dekodowanie MPC przez xmms2.
 
 %package input-sid
 Summary:	SID decoder
@@ -401,9 +428,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_null.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_replaygain.so
-# TODO: separate
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_faad.so
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_musepack.so
 %{_datadir}/%{name}
 %{_mandir}/man8/xmms2d.8*
 
@@ -462,6 +486,10 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_cddecoder.so
 %endif
 
+%files input-faad
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_faad.so
+
 %if %{with flac}
 %files input-flac
 %defattr(644,root,root,755)
@@ -475,6 +503,10 @@ rm -rf $RPM_BUILD_ROOT
 %files input-modplug
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_modplug.so
+
+%files input-musepack
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_musepack.so
 
 %files input-sid
 %defattr(644,root,root,755)
