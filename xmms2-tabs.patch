@@ -1,5 +1,5 @@
---- xmms2-0.2DrCox/SConstruct.orig	2006-02-21 19:19:52.000000000 +0100
-+++ xmms2-0.2DrCox/SConstruct	2023-05-10 21:34:24.027685454 +0200
+--- xmms2-0.2DrDolittle/SConstruct.orig	2006-03-27 21:34:45.000000000 +0200
++++ xmms2-0.2DrDolittle/SConstruct	2023-05-10 22:01:19.352267823 +0200
 @@ -72,8 +72,8 @@ base_env.Append(CPPPATH=["#src/include"]
  Help(opts.GenerateHelpText(base_env))
  
@@ -11,7 +11,7 @@
          then all instances of %VERSION% in the file will be replaced with 1.2345 etc.
          """
          try:
-@@ -138,11 +138,11 @@ base_env.handle_targets("Library")
+@@ -145,11 +145,11 @@ base_env.handle_targets("Library")
  base_env.handle_targets("Program")
  
  subst_dict = {"%VERSION%":XMMS_VERSION, "%PLATFORM%":"XMMS_OS_" + base_env.platform.upper().replace("-", ""), 
@@ -28,7 +28,7 @@
  }
  
  config = base_env.SubstInFile("src/include/xmms/xmms_defs.h", "src/include/xmms/xmms_defs.h.in", SUBST_DICT=subst_dict)
-@@ -162,7 +162,7 @@ def scan_headers(name):
+@@ -169,7 +169,7 @@ def scan_headers(name):
  		newf = dir+"/"+d
  		if os.path.isfile(newf) and newf.endswith('.h'):
  			base_env.add_header(name, newf)
@@ -37,16 +37,18 @@
  scan_headers("xmmsc")
  scan_headers("xmms")
  scan_headers("xmmsclient")
-@@ -187,9 +187,9 @@ base_env.add_manpage(8, 'doc/xmms2d.8')
+@@ -182,10 +182,10 @@ base_env.add_manpage(8, 'doc/xmms2d.8')
  #### Generate pc files.
  
  pc_files = [{"name": "xmms2-plugin", "lib":""}, 
 -	    {"name":"xmms2-client", "lib":"-lxmmsclient"},
 -	    {"name":"xmms2-client-glib", "lib":"-lxmmsclient-glib"},
--	    {"name":"xmms2-client-ecore", "lib":"-lxmmsclient-ecore"}]
+-	    {"name":"xmms2-client-ecore", "lib":"-lxmmsclient-ecore"},
+-	    {"name":"xmms2-client-cpp", "lib":"-lxmmsclient++"}]
 +            {"name":"xmms2-client", "lib":"-lxmmsclient"},
 +            {"name":"xmms2-client-glib", "lib":"-lxmmsclient-glib"},
-+            {"name":"xmms2-client-ecore", "lib":"-lxmmsclient-ecore"}]
++            {"name":"xmms2-client-ecore", "lib":"-lxmmsclient-ecore"},
++            {"name":"xmms2-client-cpp", "lib":"-lxmmsclient++"}]
  
  for p in pc_files:
  	d = subst_dict.copy()
@@ -60,4 +62,46 @@
 +	def add_manpage(self, section, source):
  		self.GZipper(source + '.gz', source)
  		self.Install(os.path.join(self.manpath, "man"+str(section)), source+'.gz')
+ 
+--- xmms2-0.2DrDolittle/src/xmms/generate-converter.py.orig	2006-03-27 21:34:45.000000000 +0200
++++ xmms2-0.2DrDolittle/src/xmms/generate-converter.py	2023-05-11 17:52:42.631056661 +0200
+@@ -150,10 +150,10 @@ def get_channelconv(numin, numout, t):
+ 		for a in range(numout):
+ 			out += "\t\tout[%d] = WRITE%s(temp[%d]);\n" % (a,t,a)
+ 	elif numin == 1 and numout == 2:
+-       		out += "\t\tout[0] = WRITE%s(temp[0]);\n" % t
+-       		out += "\t\tout[1] = WRITE%s(temp[0]);\n" % t
++		out += "\t\tout[0] = WRITE%s(temp[0]);\n" % t
++		out += "\t\tout[1] = WRITE%s(temp[0]);\n" % t
+ 	elif numin == 2 and numout == 1:
+-       		out += "\t\tout[0] = WRITE%s((temp[0] + temp[1])/2);\n" % t
++		out += "\t\tout[0] = WRITE%s((temp[0] + temp[1])/2);\n" % t
+ 	else:
+ 		raise RuntimeError("go implement channelconversion from %d to %d channels" % (numin, numout))
+ 	return out
+@@ -194,11 +194,11 @@ def make_conv(fields, curr):
+ 			out = re.sub(key,str(val),out)
+ 
+ 		out = re.sub("CONVERTER",
+-			     get_channelconv(curr['INCHANNELS'],
+-					     curr['OUTCHANNELS'],
+-					     curr['OUTTYPE']),
+-			     out)
+-		
++			get_channelconv(curr['INCHANNELS'],
++					curr['OUTCHANNELS'],
++					curr['OUTTYPE']),
++			out)
++
+ 		return out
+ 
+ 
+@@ -232,7 +232,7 @@ def make_switch(fields, curr):
+ 			val += indent + "case XMMS_SAMPLE_FORMAT_%s:\n" % a.upper()
+ 		else:
+ 			val += indent + "case %s:\n" % a
+-       		val += make_switch(fields[1:], t)
++		val += make_switch(fields[1:], t)
+ 	val += indent + "}\n"
+ 	return val
  

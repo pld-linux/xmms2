@@ -1,5 +1,5 @@
---- xmms2-0.2DrCox/SConstruct.orig	2023-05-10 21:34:42.437585719 +0200
-+++ xmms2-0.2DrCox/SConstruct	2023-05-10 21:37:23.510046448 +0200
+--- xmms2-0.2DrDolittle/SConstruct.orig	2023-05-10 22:01:41.255482496 +0200
++++ xmms2-0.2DrDolittle/SConstruct	2023-05-10 22:05:57.770759500 +0200
 @@ -5,7 +5,6 @@ import sys
  import SCons
  import re
@@ -78,17 +78,7 @@
          for (t,s) in zip(target, source):
              return do_subst_in_file(str(t), str(s), d)
   
-@@ -132,7 +131,8 @@ python_executable = sys.executable
- b = Builder(action = python_executable + ' src/xmms/generate-converter.py > src/xmms/converter.c')
- base_env.Depends('#src/xmms/converter.c', 'src/xmms/generate-converter.py')
- base_env.Depends('#src/xmms/sample.c', 'src/xmms/converter.c')
--base_env.SourceCode('src/xmms/converter.c', b)
-+base_env['BUILDERS']['GenerateConverter'] = b
-+conv = base_env.GenerateConverter()
- 
- base_env.handle_targets("Library")
- base_env.handle_targets("Program")
-@@ -152,7 +152,7 @@ config = base_env.SubstInFile("src/inclu
+@@ -159,7 +158,7 @@ config = base_env.SubstInFile("src/inclu
  try:
  	dump(base_env.config_cache, open("config.cache", "wb+"))
  except IOError:
@@ -97,7 +87,7 @@
  
  
  #### INSTALL HEADERS!
-@@ -199,14 +199,14 @@ for p in pc_files:
+@@ -195,14 +194,14 @@ for p in pc_files:
  	base_env.Install("$PKGCONFIGDIR", p["name"]+".pc")
  
  
@@ -116,10 +106,10 @@
 +print(", ".join(foo))
 +print("Default output:", xmmsenv.default_output[1])
  
+ base_env.add_script("startup.d", "src/clients/mdns/xmms2-mdns-launcher.sh")
  base_env.add_shared("mind.in.a.box-lament_snipplet.ogg")
- base_env.Alias('install', base_env.install_targets)
---- xmms2-0.2DrCox/xmmsenv.py.orig	2023-05-10 21:37:46.929919571 +0200
-+++ xmms2-0.2DrCox/xmmsenv.py	2023-05-10 21:38:22.049729311 +0200
+--- xmms2-0.2DrDolittle/xmmsenv.py.orig	2006-03-27 21:34:45.000000000 +0200
++++ xmms2-0.2DrDolittle/xmmsenv.py	2023-05-11 06:27:10.904565049 +0200
 @@ -5,7 +5,6 @@ import shutil
  import gzip
  from marshal import load
@@ -146,7 +136,7 @@
  		eval(c, self.globs)
  
  		if not isinstance(self.globs.get("target"), str):
-@@ -86,14 +83,14 @@ class XMMSEnvironment(Environment):
+@@ -87,14 +84,14 @@ class XMMSEnvironment(Environment):
  	def __init__(self, parent=None, options=None, **kw):
  		reconfigure = self.options_changed(options, ['INSTALLPATH'])
  		Environment.__init__(self, options=options, ENV=os.environ)
@@ -163,7 +153,7 @@
  				self.config_cache={}
  		else:
  			self.config_cache={}
-@@ -103,7 +100,7 @@ class XMMSEnvironment(Environment):
+@@ -104,7 +101,7 @@ class XMMSEnvironment(Environment):
  		self.programs=[]
  		self.install_targets=[]
  
@@ -172,7 +162,7 @@
  			self.installdir = os.path.normpath(self["INSTALLDIR"] + '/')
  		else:
  			self.installdir = ""
-@@ -134,7 +131,7 @@ class XMMSEnvironment(Environment):
+@@ -136,7 +133,7 @@ class XMMSEnvironment(Environment):
  			self.platform = sys.platform
  
  		def gzipper(target, source, env):
@@ -181,7 +171,7 @@
  		self['BUILDERS']['GZipper'] = SCons.Builder.Builder(action=SCons.Action.Action(gzipper))
  		
  		if self.platform == 'darwin':
-@@ -150,7 +147,7 @@ class XMMSEnvironment(Environment):
+@@ -152,7 +149,7 @@ class XMMSEnvironment(Environment):
  		self.install_targets.append(target)
  			
  	def tryaction(self, cmd):
@@ -190,7 +180,7 @@
  			return self.config_cache[cmd]
  
  		r = False
-@@ -171,7 +168,7 @@ class XMMSEnvironment(Environment):
+@@ -173,7 +170,7 @@ class XMMSEnvironment(Environment):
  		return r
  
  	def run(self, cmd):
@@ -199,7 +189,15 @@
  			return self.config_cache[cmd]
  
  		try:
-@@ -193,7 +190,7 @@ class XMMSEnvironment(Environment):
+@@ -191,26 +188,26 @@ class XMMSEnvironment(Environment):
+ 		if libs:
+ 			cmd += " --libs" 
+ 		cmd += " \"%s\"" % module
+-		if not self.config_cache.has_key(cmd):
+-			print "Checking for %s" % module,
++		if cmd not in self.config_cache:
++			print("Checking for %s" % module, end="")
+ 		self.configcmd(cmd, fail)
  		
  
  	def configcmd(self, cmd, fail=False):
@@ -208,7 +206,14 @@
  			ret = self.config_cache[cmd]
  		else:
  			ret = os.popen(cmd).read()
-@@ -201,7 +198,7 @@ class XMMSEnvironment(Environment):
+ 			if cmd.startswith("pkg-config"):
+ 				if ret == '':
+-					print " ... no"
++					print(" ... no")
+ 				else:
+-					print " ... yes"
++					print(" ... yes")
+ 			self.config_cache[cmd] = ret
  
  		if ret == '':
  			if fail:
@@ -217,7 +222,7 @@
  				sys.exit(-1)
  			raise ConfigError("Command '%s' failed" % cmd)
  		ret = ret.strip()
-@@ -215,18 +212,18 @@ class XMMSEnvironment(Environment):
+@@ -224,18 +221,18 @@ class XMMSEnvironment(Environment):
  		else:
  			key = ("HEADER", header)
  
@@ -239,7 +244,7 @@
  			#libtool_flags = None
  
  			self.config_cache[key] = ""
-@@ -249,7 +246,7 @@ class XMMSEnvironment(Environment):
+@@ -258,7 +255,7 @@ class XMMSEnvironment(Environment):
  
  		if not self.config_cache[key]:
  			if fail:
@@ -248,7 +253,7 @@
  				sys.exit(1)
  			raise ConfigError("Symbol '%s' in library '%s' not found" % (func, lib))
  
-@@ -380,14 +377,14 @@ class XMMSEnvironment(Environment):
+@@ -394,7 +394,7 @@ class XMMSEnvironment(Environment):
  		if options.files:
  			for filename in options.files:
  				if os.path.exists(filename):
@@ -256,6 +261,8 @@
 +					exec(open(filename).read(), cached)
  		else:
  			return False
+ 	
+@@ -403,8 +400,8 @@ class XMMSEnvironment(Environment):
  	
  		for option in options.options:
  			if option.key in exclude: continue
@@ -266,7 +273,7 @@
  					if options.args[option.key] != cached[option.key]:
  						# differnt value
  						return True
-@@ -417,7 +414,7 @@ class XMMSEnvironment(Environment):
+@@ -434,7 +431,7 @@ class XMMSEnvironment(Environment):
  		This will open the libtool file and read the lines
  		that we need.
  		"""
@@ -275,7 +282,7 @@
  		line = f.readline()
  		ret = {}
  		while line:
-@@ -434,12 +431,12 @@ class XMMSEnvironment(Environment):
+@@ -451,13 +448,13 @@ class XMMSEnvironment(Environment):
  		targets = [cls(a[1], self) for a in self.potential_targets if a[0].startswith(targettype)]
  
  		for t in targets:
@@ -290,16 +297,17 @@
 +			except ConfigError as m:
  				self.conf.logstream.write("xmmsscons: File %s reported error '%s' and was disabled.\n" % (t.target, m))
  				continue
---- xmms2-0.2DrBombay/src/clients/lib/ruby/Library.orig	2023-05-10 21:16:11.150272745 +0200
-+++ xmms2-0.2DrBombay/src/clients/lib/ruby/Library	2023-05-10 21:17:02.769993097 +0200
-@@ -7,14 +7,14 @@ static=False
+ 
+--- xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.orig	2006-03-27 21:34:45.000000000 +0200
++++ xmms2-0.2DrDolittle/src/clients/lib/ruby/Library	2023-05-10 22:08:47.519839891 +0200
+@@ -8,14 +8,14 @@ loadable=True
  def config(env):
  	if env.tryaction ("ruby --version") :
  		# we require ruby 1.8 or greater
 -		print "Checking for Ruby 1.8 or greater... ",
 +		print("Checking for Ruby 1.8 or greater... ", end="")
  
- 		version = env.run("ruby -e 'puts VERSION'").strip()
+ 		version = env.run("ruby -e 'puts defined?(VERSION) ? VERSION : RUBY_VERSION'").strip()
  		if not version or [int(a) for a in version.split(".")] < [1, 8] :
 -			print "no"
 +			print("no")
@@ -310,7 +318,7 @@
  
  		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
  		if got_ruby_h != "true" :
-@@ -22,7 +22,7 @@ def config(env):
+@@ -23,7 +23,7 @@ def config(env):
  
  		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
  		env.configcmd(cmd)
@@ -319,16 +327,16 @@
  			env.librarypath = env["RUBYARCHDIR"]
  		else:
  			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
---- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.ecore.orig	2005-08-18 20:26:23.000000000 +0200
-+++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library.ecore	2023-05-06 20:36:42.295381814 +0200
-@@ -13,14 +13,14 @@ def ecorelib2sed(lib):
+--- xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.ecore.orig	2006-03-27 21:34:45.000000000 +0200
++++ xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.ecore	2023-05-10 22:09:41.692879744 +0200
+@@ -14,14 +14,14 @@ def ecorelib2sed(lib):
  def config(env):
  	if env.tryaction ("ruby --version") :
  		# we require ruby 1.8 or greater
 -		print "Checking for Ruby 1.8 or greater... ",
 +		print("Checking for Ruby 1.8 or greater... ", end="")
  
- 		version = env.run("ruby -e 'puts VERSION'").strip()
+ 		version = env.run("ruby -e 'puts defined?(VERSION) ? VERSION : RUBY_VERSION'").strip()
  		if not version or [int(a) for a in version.split(".")] < [1, 8] :
 -			print "no"
 +			print("no")
@@ -339,7 +347,7 @@
  
  		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
  		if got_ruby_h != "true" :
-@@ -28,7 +28,7 @@ def config(env):
+@@ -29,7 +29,7 @@ def config(env):
  
  		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
  		env.configcmd(cmd)
@@ -348,16 +356,16 @@
  			env.librarypath = env["RUBYARCHDIR"]
  		else:
  			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
---- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.glib.orig	2005-08-18 20:26:23.000000000 +0200
-+++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library.glib	2023-05-06 20:37:48.775021663 +0200
-@@ -7,14 +7,14 @@ static=False
+--- xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.glib.orig	2006-03-27 21:34:45.000000000 +0200
++++ xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.glib	2023-05-10 22:10:27.335965807 +0200
+@@ -8,14 +8,14 @@ static=False
  def config(env):
  	if env.tryaction ("ruby --version") :
  		# we require ruby 1.8 or greater
 -		print "Checking for Ruby 1.8 or greater... ",
 +		print("Checking for Ruby 1.8 or greater... ", end="")
  
- 		version = env.run("ruby -e 'puts VERSION'").strip()
+ 		version = env.run("ruby -e 'puts defined?(VERSION) ? VERSION : RUBY_VERSION'").strip()
  		if not version or [int(a) for a in version.split(".")] < [1, 8] :
 -			print "no"
 +			print("no")
@@ -368,7 +376,7 @@
  
  		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
  		if got_ruby_h != "true" :
-@@ -22,7 +22,7 @@ def config(env):
+@@ -23,7 +23,7 @@ def config(env):
  
  		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
  		env.configcmd(cmd)
@@ -417,4 +425,80 @@
 +    info = open('commithash').read().split('\n')
  
      commithash = info[0]
+ 
+--- xmms2-0.2DrDolittle/src/clients/lib/java/Library.orig	2006-03-27 21:34:45.000000000 +0200
++++ xmms2-0.2DrDolittle/src/clients/lib/java/Library	2023-05-11 06:29:58.761021248 +0200
+@@ -8,14 +8,10 @@ import sys
+ 
+ def walkDirs(path):
+ 	"""helper function to get a list of all subdirectories"""
+-	def addDirs(pathlist, dirname, names):
+-		"""internal function to pass to os.path.walk"""
+-		for n in names:
+-			f = os.path.join(dirname, n)
+-			if os.path.isdir(f):
+-				pathlist.append(f)
+ 	pathlist = [path]
+-	os.path.walk(path, addDirs, pathlist)
++	for (dirname, dirnames, _) in os.walk(path):
++		for n in dirnames:
++			pathlist.append(os.path.join(dirname, n))
+ 	return pathlist
+ 	
+ def config(env):
+@@ -47,15 +43,15 @@ def config(env):
+ 		else:
+ 			raise ConfigError("You need to define JAVA_HOME to install the Java bindings.")
+ 			# Search for the java compiler
+-			print "JAVA_HOME environment variable is not set. Searching for java... ",
++			print("JAVA_HOME environment variable is not set. Searching for java... ", end="")
+ 			jcdir = os.path.dirname(env.WhereIs('javac'))
+ 			if not jcdir:
+-				print "not found."
++				print("not found.")
+ 				raise ConfigError("No javac found")
+ 			# assuming the compiler found is in some directory like
+ 			# /usr/jdkX.X/bin/javac, java's home directory is /usr/jdkX.X
+ 			java_base = os.path.realpath(os.path.join(jcdir, ".."))
+-			print "found in %s" % java_base
++			print("found in %s" % java_base)
+ 			
+ 	if sys.platform == 'cygwin':
+   		# Cygwin and Sun Java have different ideas of how path names
+--- xmms2-0.2DrDolittle/src/xmms/generate-converter.py.orig	2023-05-11 17:52:42.631056661 +0200
++++ xmms2-0.2DrDolittle/src/xmms/generate-converter.py	2023-05-11 18:00:05.225311544 +0200
+@@ -190,7 +190,7 @@ def make_conv(fields, curr):
+ 		#	return ""
+ 
+ 		out=resamplingcode
+-		for key,val in curr.iteritems():
++		for key,val in curr.items():
+ 			out = re.sub(key,str(val),out)
+ 
+ 		out = re.sub("CONVERTER",
+@@ -236,15 +236,15 @@ def make_switch(fields, curr):
+ 	val += indent + "}\n"
+ 	return val
+ 
+-print readwriters
+-print make_conv(data.keys(),{})
++print(readwriters)
++print(make_conv(list(data.keys()),{}))
+ 
+-print "static xmms_sample_conv_func_t"
+-print "xmms_sample_conv_get (guint inchannels, xmms_sample_format_t intype,"
+-print "                      guint outchannels, xmms_sample_format_t outtype,"
+-print "                      gboolean resample)"
+-print "{"
+-print make_switch(data.keys(),{})
+-print "\treturn NULL;"
+-print "}"
++print("static xmms_sample_conv_func_t")
++print("xmms_sample_conv_get (guint inchannels, xmms_sample_format_t intype,")
++print("                      guint outchannels, xmms_sample_format_t outtype,")
++print("                      gboolean resample)")
++print("{")
++print(make_switch(list(data.keys()),{}))
++print("\treturn NULL;")
++print("}")
  

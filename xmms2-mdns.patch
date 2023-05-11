@@ -1,0 +1,9 @@
+--- xmms2-0.2DrDolittle/src/clients/mdns/dns_sd/Program.orig	2006-03-27 21:34:45.000000000 +0200
++++ xmms2-0.2DrDolittle/src/clients/mdns/dns_sd/Program	2023-05-11 17:58:17.242155129 +0200
+@@ -8,5 +8,4 @@ def config(env):
+ 	env.Append(LIBS=["xmmsclient-glib"])
+ 	env.pkgconfig("glib-2.0")
+ 	env.checkheader("dns_sd.h")
+-	# on macosx it's in libc? 
+-	#env.checklib("dns_sd", "DNSServiceRegister")
++	env.checklib("dns_sd", "DNSServiceRegister")

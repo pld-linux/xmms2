@@ -1,14 +1,6 @@
---- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.orig	2023-05-07 20:14:21.607909314 +0200
-+++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library	2023-05-07 20:14:54.607730539 +0200
-@@ -9,23 +9,23 @@ def config(env):
- 		# we require ruby 1.8 or greater
- 		print("Checking for Ruby 1.8 or greater... ", end="")
- 
--		version = env.run("ruby -e 'puts VERSION'").strip()
-+		version = env.run("ruby -e 'puts RUBY_VERSION'").strip()
- 		if not version or [int(a) for a in version.split(".")] < [1, 8] :
- 			print("no")
- 			raise ConfigError("Need ruby 1.8")
+--- xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.orig	2023-05-10 22:10:51.425835301 +0200
++++ xmms2-0.2DrDolittle/src/clients/lib/ruby/Library	2023-05-10 22:34:00.468310213 +0200
+@@ -17,16 +17,16 @@ def config(env):
  
  		print(version)
  
@@ -28,17 +20,9 @@
  			env.librarypath = os.popen(cmd).read().strip()
  
  		env.Prepend(LIBPATH="src/clients/lib/xmmsclient")
---- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.ecore.orig	2023-05-07 20:40:30.769408437 +0200
-+++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library.ecore	2023-05-07 20:42:13.692184190 +0200
-@@ -15,23 +15,23 @@ def config(env):
- 		# we require ruby 1.8 or greater
- 		print("Checking for Ruby 1.8 or greater... ", end="")
- 
--		version = env.run("ruby -e 'puts VERSION'").strip()
-+		version = env.run("ruby -e 'puts RUBY_VERSION'").strip()
- 		if not version or [int(a) for a in version.split(".")] < [1, 8] :
- 			print("no")
- 			raise ConfigError("")
+--- xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.ecore.orig	2023-05-10 22:10:51.429168616 +0200
++++ xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.ecore	2023-05-10 22:34:47.804720436 +0200
+@@ -23,16 +23,16 @@ def config(env):
  
  		print(version)
  
@@ -58,17 +42,9 @@
  			env.librarypath = os.popen(cmd).read().strip()
  
  		env.Prepend(LIBPATH="src/clients/lib/xmmsclient")
---- xmms2-0.1DR2.1/src/clients/lib/ruby/Library.glib.orig	2023-05-07 20:42:40.065374647 +0200
-+++ xmms2-0.1DR2.1/src/clients/lib/ruby/Library.glib	2023-05-07 20:43:31.151764555 +0200
-@@ -9,23 +9,23 @@ def config(env):
- 		# we require ruby 1.8 or greater
- 		print("Checking for Ruby 1.8 or greater... ", end="")
- 
--		version = env.run("ruby -e 'puts VERSION'").strip()
-+		version = env.run("ruby -e 'puts RUBY_VERSION'").strip()
- 		if not version or [int(a) for a in version.split(".")] < [1, 8] :
- 			print("no")
- 			raise ConfigError("bad")
+--- xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.glib.orig	2023-05-10 22:10:51.429168616 +0200
++++ xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.glib	2023-05-10 22:35:11.117927471 +0200
+@@ -17,16 +17,16 @@ def config(env):
  
  		print(version)
  
@@ -88,9 +64,9 @@
  			env.librarypath = os.popen(cmd).read().strip()
  
  		env.pkgconfig("glib-2.0")
---- xmms2-0.2DrAlban/src/clients/lib/ruby/rb_xmmsclient.c.orig	2005-12-18 17:35:27.000000000 +0100
-+++ xmms2-0.2DrAlban/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-09 22:35:33.975872606 +0200
-@@ -511,7 +511,7 @@ static VALUE c_playlist_add (VALUE self,
+--- xmms2-0.2DrDolittle/src/clients/lib/ruby/rb_xmmsclient.c.orig	2023-05-10 22:10:51.432501932 +0200
++++ xmms2-0.2DrDolittle/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-10 22:36:02.564315428 +0200
+@@ -721,7 +721,7 @@ static VALUE c_playlist_add (VALUE self,
  
  	if (!NIL_P (rb_check_string_type (arg)))
  		is_str = true;
@@ -98,8 +74,8 @@
 +	else if (rb_obj_is_kind_of (arg, rb_cInteger))
  		is_str = false;
  	else {
- 		rb_raise (eXmmsClientError, "unsupported argument");
-@@ -538,7 +538,7 @@ static VALUE c_playlist_insert (VALUE se
+ 		rb_raise (eClientError, "unsupported argument");
+@@ -755,7 +755,7 @@ static VALUE c_playlist_insert (VALUE se
  
  	if (!NIL_P (rb_check_string_type (arg)))
  		is_str = true;
@@ -107,4 +83,4 @@
 +	else if (rb_obj_is_kind_of (arg, rb_cInteger))
  		is_str = false;
  	else {
- 		rb_raise (eXmmsClientError, "unsupported argument");
+ 		rb_raise (eClientError, "unsupported argument");
