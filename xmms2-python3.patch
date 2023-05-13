@@ -108,8 +108,8 @@
  
  base_env.add_script("startup.d", "src/clients/mdns/xmms2-mdns-launcher.sh")
  base_env.add_shared("mind.in.a.box-lament_snipplet.ogg")
---- xmms2-0.2DrEvil/xmmsenv.py.orig	2023-05-11 21:28:34.728175487 +0200
-+++ xmms2-0.2DrEvil/xmmsenv.py	2023-05-11 21:32:50.826788082 +0200
+--- xmms2-0.2DrFeelgood/xmmsenv.py.orig	2023-05-13 16:44:13.801131219 +0200
++++ xmms2-0.2DrFeelgood/xmmsenv.py	2023-05-13 16:46:40.797001541 +0200
 @@ -5,8 +5,7 @@ import shutil
  import gzip
  from marshal import load
@@ -141,7 +141,7 @@
  			x += '\n'
  
  		c = compile(x, target, "exec")
-@@ -93,14 +90,14 @@ class XMMSEnvironment(Environment):
+@@ -92,14 +89,14 @@ class XMMSEnvironment(Environment):
  	def __init__(self, parent=None, options=None, **kw):
  		reconfigure = self.options_changed(options, ['INSTALLPATH'])
  		Environment.__init__(self, options=options, ENV=os.environ)
@@ -158,7 +158,7 @@
  				self.config_cache={}
  		else:
  			self.config_cache={}
-@@ -110,7 +107,7 @@ class XMMSEnvironment(Environment):
+@@ -109,7 +106,7 @@ class XMMSEnvironment(Environment):
  		self.programs=[]
  		self.install_targets=[]
  
@@ -167,7 +167,7 @@
  			self.installdir = os.path.normpath(self["INSTALLDIR"] + '/')
  		else:
  			self.installdir = ""
-@@ -142,7 +139,7 @@ class XMMSEnvironment(Environment):
+@@ -141,7 +138,7 @@ class XMMSEnvironment(Environment):
  			self.platform = sys.platform
  
  		def gzipper(target, source, env):
@@ -176,7 +176,7 @@
  		self['BUILDERS']['GZipper'] = SCons.Builder.Builder(action=SCons.Action.Action(gzipper))
  		
  		if self.platform == 'darwin':
-@@ -158,7 +155,7 @@ class XMMSEnvironment(Environment):
+@@ -157,7 +154,7 @@ class XMMSEnvironment(Environment):
  		self.install_targets.append(target)
  			
  	def tryaction(self, cmd):
@@ -185,7 +185,7 @@
  			return self.config_cache[cmd]
  
  		r = False
-@@ -179,7 +176,7 @@ class XMMSEnvironment(Environment):
+@@ -178,7 +175,7 @@ class XMMSEnvironment(Environment):
  		return r
  
  	def run(self, cmd):
@@ -194,7 +194,7 @@
  			return self.config_cache[cmd]
  
  		try:
-@@ -197,28 +194,29 @@ class XMMSEnvironment(Environment):
+@@ -196,28 +193,29 @@ class XMMSEnvironment(Environment):
  		if libs:
  			cmd += " --libs" 
  		cmd += " \"%s\"" % module
@@ -231,7 +231,7 @@
  				sys.exit(-1)
  			raise ConfigError("Command '%s' failed" % cmd)
  		ret = ret.strip()
-@@ -232,11 +230,11 @@ class XMMSEnvironment(Environment):
+@@ -231,11 +229,11 @@ class XMMSEnvironment(Environment):
  		else:
  			key = ("HEADER", header)
  
@@ -245,7 +245,7 @@
  				sys.exit(1)
  			raise ConfigError("Headerfile '%s' not found" % header)
  
-@@ -247,11 +245,11 @@ class XMMSEnvironment(Environment):
+@@ -246,11 +244,11 @@ class XMMSEnvironment(Environment):
  		else:
  			key = ("HEADER", header)
  
@@ -259,7 +259,7 @@
  				sys.exit(1)
  			raise ConfigError("Headerfile '%s' not found" % header)
  
-@@ -259,7 +257,7 @@ class XMMSEnvironment(Environment):
+@@ -258,7 +256,7 @@ class XMMSEnvironment(Environment):
  	def checklib(self, lib, func, header=0, lang="c", fail=False):
  		key = (lib, func)
  
@@ -268,7 +268,7 @@
  			#libtool_flags = None
  
  			self.config_cache[key] = ""
-@@ -282,7 +280,7 @@ class XMMSEnvironment(Environment):
+@@ -281,7 +279,7 @@ class XMMSEnvironment(Environment):
  
  		if not self.config_cache[key]:
  			if fail:
@@ -277,7 +277,7 @@
  				sys.exit(1)
  			raise ConfigError("Symbol '%s' in library '%s' not found" % (func, lib))
  
-@@ -425,14 +423,14 @@ class XMMSEnvironment(Environment):
+@@ -423,14 +421,14 @@ class XMMSEnvironment(Environment):
  		if options.files:
  			for filename in options.files:
  				if os.path.exists(filename):
@@ -295,7 +295,7 @@
  					if options.args[option.key] != cached[option.key]:
  						# differnt value
  						return True
-@@ -462,7 +460,7 @@ class XMMSEnvironment(Environment):
+@@ -460,7 +458,7 @@ class XMMSEnvironment(Environment):
  		This will open the libtool file and read the lines
  		that we need.
  		"""
@@ -304,14 +304,14 @@
  		line = f.readline()
  		ret = {}
  		while line:
-@@ -479,13 +477,13 @@ class XMMSEnvironment(Environment):
+@@ -477,13 +475,13 @@ class XMMSEnvironment(Environment):
  		targets = [cls(a[1], self) for a in self.potential_targets if a[0].startswith(targettype)]
  
  		for t in targets:
 -			env = self.Copy()
 +			env = self.Clone()
  			env.dir = t.dir
- 
+ 		
  			try:
  				t.config(env)
  				t.add(env)
