@@ -1,5 +1,5 @@
---- xmms2-0.2DrEvil/src/plugins/wma/wma.c.orig	2006-07-06 22:35:55.000000000 +0200
-+++ xmms2-0.2DrEvil/src/plugins/wma/wma.c	2023-05-13 14:06:54.268936218 +0200
+--- xmms2-0.2DrGonzo/src/plugins/wma/wma.c.orig	2006-09-26 15:50:20.000000000 +0200
++++ xmms2-0.2DrGonzo/src/plugins/wma/wma.c	2023-05-13 18:39:29.583665211 +0200
 @@ -24,7 +24,7 @@
  #include <string.h>
  #include <glib.h>
@@ -75,18 +75,18 @@
 -	if ((temp = avcodec_open (data->codecctx, codec)) < 0) {
 +	if ((temp = avcodec_open2 (data->codecctx, codec, NULL)) < 0) {
  		XMMS_DBG ("Opening WMA decoder failed");
- 		goto err;
+ 		goto err_close_codec;
  	}
-@@ -209,7 +214,7 @@ err:
- 		avcodec_close (data->codecctx);
- 	}
+@@ -208,7 +213,7 @@ err_close_codec:
+ 	avcodec_close (data->codecctx);
+ err:
  	if (data->fmtctx) {
 -		av_close_input_file (data->fmtctx);
 +		avformat_close_input (&data->fmtctx);
  	}
  	g_string_free (data->outbuf, TRUE);
  	g_free (data);
-@@ -223,9 +228,7 @@ xmms_wma_read (xmms_xform_t *xform, xmms
+@@ -222,9 +227,7 @@ xmms_wma_read (xmms_xform_t *xform, xmms
  {
  	xmms_wma_data_t *data;
  	AVPacket pkt;
@@ -97,7 +97,7 @@
  
  	data = xmms_xform_private_data_get (xform);
  	g_return_val_if_fail (data, -1);
-@@ -237,26 +240,33 @@ xmms_wma_read (xmms_xform_t *xform, xmms
+@@ -236,26 +239,33 @@ xmms_wma_read (xmms_xform_t *xform, xmms
  		if (pkt.size == 0)
  			return 0;
  
@@ -143,7 +143,7 @@
  		}
  
  		if (pkt.data) {
-@@ -505,8 +515,8 @@ xmms_wma_read_callback (void *user_data,
+@@ -504,8 +514,8 @@ xmms_wma_read_callback (void *user_data,
  	return ret;
  }
  
@@ -154,7 +154,7 @@
  {
  	xmms_xform_t *xform;
  	xmms_wma_data_t *data;
-@@ -556,7 +566,7 @@ xmms_wma_get_track (AVFormatContext *fmt
+@@ -555,7 +565,7 @@ xmms_wma_get_track (AVFormatContext *fmt
  	for (wma_idx = 0; wma_idx < fmtctx->nb_streams; wma_idx++) {
  		codec = fmtctx->streams[wma_idx]->codec;
  

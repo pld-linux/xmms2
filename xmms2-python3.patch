@@ -1,5 +1,5 @@
---- xmms2-0.2DrDolittle/SConstruct.orig	2023-05-10 22:01:41.255482496 +0200
-+++ xmms2-0.2DrDolittle/SConstruct	2023-05-10 22:05:57.770759500 +0200
+--- xmms2-0.2DrGonzo/SConstruct.orig	2023-05-13 18:09:37.823372009 +0200
++++ xmms2-0.2DrGonzo/SConstruct	2023-05-13 18:32:37.612563716 +0200
 @@ -5,7 +5,6 @@ import sys
  import SCons
  import re
@@ -8,7 +8,7 @@
  import gittools
  from marshal import dump
  
-@@ -24,7 +23,7 @@ EnsurePythonVersion(2, 1)
+@@ -24,7 +23,7 @@ EnsurePythonVersion(2, 3)
  SConsignFile()
  
  def SimpleListOption(key, help, default=[]):
@@ -16,17 +16,17 @@
 +	return(key, help, default, None, lambda val: val.split())
  
  
- if sys.platform == 'win32':
-@@ -43,7 +42,7 @@ else:
- 	else:
- 		default_cpppath = []
+ default_pyrex = 'pyrexc'
+@@ -36,7 +35,7 @@ if sys.platform == 'darwin':
+ else:
+ 	default_cpppath = []
  
 -opts = Options("options.cache")
 +opts = Variables("options.cache")
  opts.Add('CC', 'C compiler to use')
  opts.Add('CXX', 'C++ compiler to use')
  opts.Add('LD', 'Linker to use')
-@@ -57,9 +56,9 @@ opts.Add('MANDIR', 'manual directory', '
+@@ -56,10 +55,10 @@ opts.Add('INCLUDEDIR', 'specified includ
  opts.Add('RUBYARCHDIR', 'Path to install Ruby bindings')
  opts.Add('INSTALLDIR', 'install dir')
  opts.Add('PKGCONFIGDIR', 'Where should we put our .pc files?', '$PREFIX/lib/pkgconfig')
@@ -34,11 +34,22 @@
 +opts.Add(BoolVariable('SHOWCACHE', 'show what flags that lives inside cache', 0))
  opts.Add(SimpleListOption('EXCLUDE', 'exclude these modules', []))
 -opts.Add(BoolOption('CONFIG', 'run configuration commands again', 0))
+-opts.Add(BoolOption('STATIC', 'Link everything static', 0))
 +opts.Add(BoolVariable('CONFIG', 'run configuration commands again', 0))
++opts.Add(BoolVariable('STATIC', 'Link everything static', 0))
  
  # base CCPATH
  base_env = xmmsenv.XMMSEnvironment(options=opts)
-@@ -77,24 +76,24 @@ def do_subst_in_file(targetfile, sourcef
+@@ -72,7 +72,7 @@ except xmmsenv.ConfigError:
+ 		os.remove("config.cache")
+ 	except:
+ 		pass
+-	print "OPTION CC MUST POINT TO A VALID C COMPILER!"
++	print("OPTION CC MUST POINT TO A VALID C COMPILER!")
+ 	sys.exit(-1)
+ 
+ base_env.Append(CPPPATH=["#src/include"])
+@@ -86,24 +85,24 @@ def do_subst_in_file(targetfile, sourcef
          then all instances of %VERSION% in the file will be replaced with 1.2345 etc.
          """
          try:
@@ -69,7 +80,7 @@
          d = dict(env['SUBST_DICT']) # copy it
          for (k,v) in d.items():
              if callable(v):
-@@ -102,7 +101,7 @@ def subst_in_file(target, source, env):
+@@ -111,7 +110,7 @@ def subst_in_file(target, source, env):
              elif SCons.Util.is_String(v):
                  d[k]=env.subst(v)
              else:
@@ -78,7 +89,7 @@
          for (t,s) in zip(target, source):
              return do_subst_in_file(str(t), str(s), d)
   
-@@ -159,7 +158,7 @@ config = base_env.SubstInFile("src/inclu
+@@ -161,7 +160,7 @@ config = base_env.SubstInFile("src/inclu
  try:
  	dump(base_env.config_cache, open("config.cache", "wb+"))
  except IOError:
@@ -87,7 +98,7 @@
  
  
  #### INSTALL HEADERS!
-@@ -195,14 +194,14 @@ for p in pc_files:
+@@ -205,14 +204,14 @@ for p in pc_files:
  	base_env.Install("$PKGCONFIGDIR", p["name"]+".pc")
  
  
@@ -108,8 +119,8 @@
  
  base_env.add_script("startup.d", "src/clients/mdns/xmms2-mdns-launcher.sh")
  base_env.add_shared("mind.in.a.box-lament_snipplet.ogg")
---- xmms2-0.2DrFeelgood/xmmsenv.py.orig	2023-05-13 16:44:13.801131219 +0200
-+++ xmms2-0.2DrFeelgood/xmmsenv.py	2023-05-13 16:46:40.797001541 +0200
+--- xmms2-0.2DrGonzo/xmmsenv.py.orig	2023-05-13 18:32:56.662460514 +0200
++++ xmms2-0.2DrGonzo/xmmsenv.py	2023-05-13 18:33:57.138799553 +0200
 @@ -5,8 +5,7 @@ import shutil
  import gzip
  from marshal import load
@@ -126,10 +137,10 @@
  
 -any = lambda x: reduce(operator.or_, x)
 -
- def installFunc(dest, source, env):
- 	"""Copy file, setting sane permissions"""
- 	
-@@ -41,9 +38,9 @@ class Target:
+ 
+ def find_static_lib(env, lib):
+ 	libname = "lib%s.a" % lib
+@@ -48,9 +45,9 @@ class Target:
  		self.globs['platform'] = env.platform
  		self.globs['ConfigError'] = ConfigError
  
@@ -141,7 +152,7 @@
  			x += '\n'
  
  		c = compile(x, target, "exec")
-@@ -92,14 +89,14 @@ class XMMSEnvironment(Environment):
+@@ -101,14 +98,14 @@ class XMMSEnvironment(Environment):
  	def __init__(self, parent=None, options=None, **kw):
  		reconfigure = self.options_changed(options, ['INSTALLPATH'])
  		Environment.__init__(self, options=options, ENV=os.environ)
@@ -158,7 +169,7 @@
  				self.config_cache={}
  		else:
  			self.config_cache={}
-@@ -109,7 +106,7 @@ class XMMSEnvironment(Environment):
+@@ -118,7 +115,7 @@ class XMMSEnvironment(Environment):
  		self.programs=[]
  		self.install_targets=[]
  
@@ -167,8 +178,17 @@
  			self.installdir = os.path.normpath(self["INSTALLDIR"] + '/')
  		else:
  			self.installdir = ""
-@@ -141,7 +138,7 @@ class XMMSEnvironment(Environment):
+@@ -147,7 +147,7 @@ class XMMSEnvironment(Environment):
  			self.platform = sys.platform
+ 
+ 		# Where to place the xmms2 user config directory
+-		if self.has_key("USERCONFDIR"):
++		if "USERCONFDIR" in self:
+ 			self.userconfpath = self["USERCONFDIR"]
+ 		else:
+ 			if sys.platform == 'darwin':
+@@ -159,7 +156,7 @@ class XMMSEnvironment(Environment):
+ 				self.userconfpath = '.config/xmms2'
  
  		def gzipper(target, source, env):
 -			gzip.GzipFile(target[0].path, 'wb',9).write(file(source[0].path).read())
@@ -176,7 +196,7 @@
  		self['BUILDERS']['GZipper'] = SCons.Builder.Builder(action=SCons.Action.Action(gzipper))
  		
  		if self.platform == 'darwin':
-@@ -157,7 +154,7 @@ class XMMSEnvironment(Environment):
+@@ -178,7 +175,7 @@ class XMMSEnvironment(Environment):
  		self.install_targets.append(target)
  			
  	def tryaction(self, cmd):
@@ -185,7 +205,7 @@
  			return self.config_cache[cmd]
  
  		r = False
-@@ -178,7 +175,7 @@ class XMMSEnvironment(Environment):
+@@ -199,7 +196,7 @@ class XMMSEnvironment(Environment):
  		return r
  
  	def run(self, cmd):
@@ -194,7 +214,7 @@
  			return self.config_cache[cmd]
  
  		try:
-@@ -196,28 +193,29 @@ class XMMSEnvironment(Environment):
+@@ -217,28 +214,29 @@ class XMMSEnvironment(Environment):
  		if libs:
  			cmd += " --libs" 
  		cmd += " \"%s\"" % module
@@ -231,7 +251,7 @@
  				sys.exit(-1)
  			raise ConfigError("Command '%s' failed" % cmd)
  		ret = ret.strip()
-@@ -231,11 +229,11 @@ class XMMSEnvironment(Environment):
+@@ -252,33 +250,33 @@ class XMMSEnvironment(Environment):
  		else:
  			key = ("HEADER", header)
  
@@ -245,7 +265,37 @@
  				sys.exit(1)
  			raise ConfigError("Headerfile '%s' not found" % header)
  
-@@ -246,11 +244,11 @@ class XMMSEnvironment(Environment):
+ 	def checkcompiler(self):
+-		if not self.config_cache.has_key("c"):
+-			print "Checking for working C compiler...",
++		if "c" not in self.config_cache:
++			print("Checking for working C compiler...", end="")
+ 			self.config_cache["c"] = self.conf.TryCompile("int main() {}",".c")
+ 			if self.config_cache["c"]:
+-				print "yes"
++				print("yes")
+ 			else:
+-				print "no"
++				print("no")
+ 		if not self.config_cache["c"]:
+ 			raise ConfigError("couldn't compile C files")
+ 
+ 	def checkcpp(self):
+-		if not self.config_cache.has_key("cpp"):
+-			print "Checking for working C++ compiler...",
++		if "cpp" not in self.config_cache:
++			print("Checking for working C++ compiler...", end="")
+ 			self.config_cache["cpp"] = self.conf.TryCompile("using namespace std; int main() {};",".cpp")
+ 			if self.config_cache["cpp"]:
+-				print "yes"
++				print("yes")
+ 			else:
+-				print "no"
++				print("no")
+ 		if not self.config_cache["cpp"]:
+ 			raise ConfigError("couldn't compile CPP files")
+ 
+@@ -289,11 +287,11 @@ class XMMSEnvironment(Environment):
  		else:
  			key = ("HEADER", header)
  
@@ -259,7 +309,7 @@
  				sys.exit(1)
  			raise ConfigError("Headerfile '%s' not found" % header)
  
-@@ -258,7 +256,7 @@ class XMMSEnvironment(Environment):
+@@ -301,7 +299,7 @@ class XMMSEnvironment(Environment):
  	def checklib(self, lib, func, header=0, lang="c", fail=False):
  		key = (lib, func)
  
@@ -268,7 +318,7 @@
  			#libtool_flags = None
  
  			self.config_cache[key] = ""
-@@ -281,7 +279,7 @@ class XMMSEnvironment(Environment):
+@@ -324,7 +322,7 @@ class XMMSEnvironment(Environment):
  
  		if not self.config_cache[key]:
  			if fail:
@@ -277,7 +327,7 @@
  				sys.exit(1)
  			raise ConfigError("Symbol '%s' in library '%s' not found" % (func, lib))
  
-@@ -423,14 +421,14 @@ class XMMSEnvironment(Environment):
+@@ -478,14 +476,14 @@ class XMMSEnvironment(Environment):
  		if options.files:
  			for filename in options.files:
  				if os.path.exists(filename):
@@ -295,7 +345,7 @@
  					if options.args[option.key] != cached[option.key]:
  						# differnt value
  						return True
-@@ -460,7 +458,7 @@ class XMMSEnvironment(Environment):
+@@ -515,7 +513,7 @@ class XMMSEnvironment(Environment):
  		This will open the libtool file and read the lines
  		that we need.
  		"""
@@ -304,7 +354,7 @@
  		line = f.readline()
  		ret = {}
  		while line:
-@@ -477,13 +475,13 @@ class XMMSEnvironment(Environment):
+@@ -532,13 +530,13 @@ class XMMSEnvironment(Environment):
  		targets = [cls(a[1], self) for a in self.potential_targets if a[0].startswith(targettype)]
  
  		for t in targets:
@@ -407,17 +457,17 @@
  			env.librarypath = env["RUBYARCHDIR"]
  		else:
  			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
---- xmms2-0.2DrEvil/src/xmms/Program.orig	2023-05-11 21:33:20.679959687 +0200
-+++ xmms2-0.2DrEvil/src/xmms/Program	2023-05-11 21:35:06.382720379 +0200
-@@ -23,7 +23,7 @@ source = ["main.c",
- 		  "statfs.c"]
+--- xmms2-0.2DrGonzo/src/xmms/Program.orig	2023-05-13 18:34:24.915315741 +0200
++++ xmms2-0.2DrGonzo/src/xmms/Program	2023-05-13 18:34:56.695143575 +0200
+@@ -25,7 +25,7 @@ source = ["main.c",
+           "bindata.c"]
  
  def config(env):
 -	pluginenv = env.Copy()
 +	pluginenv = env.Clone()
- 	env.Prepend(LIBPATH=["src/lib/xmmsipc"])
- 	env.Prepend(LIBPATH=["src/lib/xmmssocket"])
- 	env.Append(LIBS=['xmmsipc'])
+ 	env.pkgconfig("glib-2.0 >= 2.6.0", fail=True)
+ 	env.pkgconfig("gmodule-2.0", fail=True)
+ 	env.pkgconfig("gthread-2.0", fail=True)
 --- xmms2-0.2DrCox/gittools.py.orig	2023-05-10 21:38:46.116265598 +0200
 +++ xmms2-0.2DrCox/gittools.py	2023-05-10 21:39:29.229365368 +0200
 @@ -1,9 +1,9 @@
@@ -448,8 +498,8 @@
  
      commithash = info[0]
  
---- xmms2-0.2DrEvil/src/clients/lib/java/Library.orig	2006-07-06 22:35:55.000000000 +0200
-+++ xmms2-0.2DrEvil/src/clients/lib/java/Library	2023-05-12 06:17:51.984695466 +0200
+--- xmms2-0.2DrGonzo/src/clients/lib/java/Library.orig	2023-05-13 18:35:17.925028563 +0200
++++ xmms2-0.2DrGonzo/src/clients/lib/java/Library	2023-05-13 18:37:16.014388818 +0200
 @@ -8,42 +8,38 @@ import sys
  
  def walkDirs(path):
@@ -470,7 +520,7 @@
  def config(env):
 -	print "Checking for swig >= 1.3.25 ... ",
 +	print("Checking for swig >= 1.3.25 ... ", end="")
- 	
+ 
  	if not env.get('SWIG'):
 -		print "no"
 +		print("no")
@@ -478,7 +528,7 @@
  
  	try:
  		version = env.run(env.get('SWIG') + " -version").strip().split("\n")[0].split(' ')[2]
- 	
+ 		
  		if not version or ([int(a) for a in version.split(".")] < [1,3,25]) :
 -			print "no"
 +			print("no")
@@ -486,7 +536,7 @@
  	
 -		print version
 +		print(version)
- 	except ValueError:
+ 	except:
 -		print "no"
 +		print("no")
  		raise ConfigError("Couldn't check version of swig")
@@ -494,18 +544,24 @@
 -	print "Checking for presence of java ... ",
 +	print("Checking for presence of java ... ", end="")
  	
- 	if not env.get('JAVAC'):
--		print "no"
-+		print("no")
+ 	if not env.get('JAVAC') or not env.get('JAR'):
+-		print "not present"
++		print("not present")
  		raise ConfigError("Couldn't find javac")
  	
--	print "yes"
-+	print("yes")
+-	print "present"
++	print("present")
  	
  	# link with xmmsclient is nice.
  	if env.platform == 'win32':
-@@ -67,15 +63,15 @@ def config(env):
+@@ -65,19 +61,19 @@ def config(env):
+ 			# Apple's OS X has its own special java base directory
+ 			java_base = '/System/Library/Frameworks/JavaVM.framework'
  		else:
+-			print "Your system is missing JAVA_HOME which is needed for javabindings"
+-			print "Please set JAVA_HOME and run scons with CONFIG=1 again"
++			print("Your system is missing JAVA_HOME which is needed for javabindings")
++			print("Please set JAVA_HOME and run scons with CONFIG=1 again")
  			raise ConfigError("You need to define JAVA_HOME to install the Java bindings.")
  			# Search for the java compiler
 -			print "JAVA_HOME environment variable is not set. Searching for java... ",

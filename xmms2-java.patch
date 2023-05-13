@@ -1,6 +1,6 @@
---- xmms2-0.2DrEvil/src/clients/lib/java/Library.orig	2023-05-11 22:00:10.991235882 +0200
-+++ xmms2-0.2DrEvil/src/clients/lib/java/Library	2023-05-11 22:01:06.790933589 +0200
-@@ -123,7 +123,7 @@ def config(env):
+--- xmms2-0.2DrGonzo/src/clients/lib/java/Library.orig	2023-05-13 18:41:07.899799253 +0200
++++ xmms2-0.2DrGonzo/src/clients/lib/java/Library	2023-05-13 18:43:31.892352512 +0200
+@@ -125,7 +125,7 @@ def config(env):
  	
  	env.Java(target = mydir, source = [mydir + '/src'])
  	env.Jar(target=mydir + '/xmms2java.jar', source=mydir + '/org')
@@ -8,4 +8,14 @@
 +	env.Install(env['PREFIX'] + '/share/java', mydir + '/xmms2java.jar')
  	def mkdir(target, source, env):
  		try:
- 			os.mkdir(mydir + "/src/org/xmms2/xmms2bindings")
+ 			os.mkdir(mydir + "/src/org/xmms2/wrapper/xmms2bindings")
+--- xmms2-0.2DrGonzo/src/clients/lib/java/misc.c.orig	2006-09-26 15:50:20.000000000 +0200
++++ xmms2-0.2DrGonzo/src/clients/lib/java/misc.c	2023-05-13 19:59:12.574420194 +0200
+@@ -14,6 +14,7 @@
+  *  Lesser General Public License for more details.
+  */
+ 
++#include <limits.h>
+ #include <stdio.h>
+ #include <xmmsclient/xmmsclient.h>
+ #include <xmms/xmms_defs.h>

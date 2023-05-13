@@ -10,18 +10,19 @@
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.2DrFeelgood
+Version:	0.2DrGonzo
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	https://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	46dc92bb78bf16d6cd9a733e6a923a92
+# Source0-md5:	0845dc7ce04d1825c28566b5c36f23b3
 Patch0:		%{name}-tabs.patch
 Patch1:		%{name}-python3.patch
 Patch2:		%{name}-link.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-ffmpeg.patch
 Patch5:		%{name}-ruby.patch
+Patch6:		%{name}-man.patch
 Patch7:		%{name}-java.patch
 URL:		http://xmms2.xmms.se/
 BuildRequires:	SDL-devel
@@ -44,6 +45,8 @@ BuildRequires:	libmad-devel
 BuildRequires:	libmodplug-devel
 BuildRequires:	libmms-devel
 BuildRequires:	libmpcdec-devel
+BuildRequires:	libogg-devel
+BuildRequires:	libshout-devel
 BuildRequires:	libsidplay2-devel
 BuildRequires:	libsmbclient-devel
 BuildRequires:	libstdc++-devel
@@ -317,6 +320,18 @@ This package enables ALSA output for xmms2.
 %description output-alsa -l pl.UTF-8
 Ten pakiet udostępnia wyjście ALSA dla xmms2.
 
+%package output-ices
+Summary:	ICES (Icecast source) output
+Summary(pl.UTF-8):	Wyjście ICES (Icecast source)
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description output-ices
+This package enables Icecast source output for xmms2.
+
+%description output-ices -l pl.UTF-8
+Ten pakiet udostępnia wyjście źródła Icecast dla xmms2.
+
 %package output-jack
 Summary:	JACK output
 Summary(pl.UTF-8):	Wyjście JACK
@@ -352,6 +367,18 @@ This package contains a HTTP transport for xmms2.
 
 %description transport-curl -l pl.UTF-8
 Ten pakiet zawiera transport HTTP dla xmms2.
+
+%package transport-daap
+Summary:	DAAP transport
+Summary(pl.UTF-8):	Transport DAAP
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description transport-daap
+This package enables DAAP transport for xmms2.
+
+%description transport-daap -l pl.UTF-8
+Ten pakiet umożliwia odbiór danych DAAP przez xmms2.
 
 %package transport-gnomevfs
 Summary:	GnomeVFS transport
@@ -409,8 +436,9 @@ xmms2.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
-%patch4 -p1 -b .orig
+%patch4 -p1
 %patch5 -p1
+%patch6 -p1
 %patch7 -p1
 
 %{__sed} -i xmms2.pc.in \
@@ -434,8 +462,10 @@ scons \
 	CXX="%{__cxx}" \
 	CCFLAGS="%{rpmcflags} %{rpmcppflags} $(pkg-config --cflags smbclient)"	\
 	PREFIX=%{_prefix} \
+	LIBDIR=%{_libdir} \
 	MANDIR=%{_mandir} \
-	PKGCONFIGDIR=%{_pkgconfigdir}
+	PKGCONFIGDIR=%{_pkgconfigdir} \
+	SHAREDIR=%{_datadir}/xmms2
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -466,6 +496,7 @@ rm -rf $RPM_BUILD_ROOT
 #%attr(755,root,root) %{_libdir}/%{name}/libxmms_m3u.so
 #%attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
 %{_datadir}/%{name}
+%{_mandir}/man8/xmms2-launcher.8*
 %{_mandir}/man8/xmms2d.8*
 
 ### clients
@@ -479,6 +510,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/xmms2-mlib-updater
 %{_mandir}/man1/xmms2.1*
 %{_mandir}/man1/xmms2-et.1*
+%{_mandir}/man8/xmms2-mdns-avahi.8*
 
 %files client-sdlvis
 %defattr(644,root,root,755)
@@ -577,6 +609,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_alsa.so
 
+%files output-ices
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_ices.so
+
 %files output-jack
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_jack.so
@@ -588,6 +624,10 @@ rm -rf $RPM_BUILD_ROOT
 %files transport-curl
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_curl_http.so
+
+%files transport-daap
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_daap.so
 
 %files transport-gnomevfs
 %defattr(644,root,root,755)

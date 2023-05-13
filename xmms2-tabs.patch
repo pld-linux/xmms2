@@ -1,6 +1,6 @@
---- xmms2-0.2DrEvil/SConstruct.orig	2006-07-06 22:35:55.000000000 +0200
-+++ xmms2-0.2DrEvil/SConstruct	2023-05-11 21:28:12.098298084 +0200
-@@ -71,8 +71,8 @@ base_env.Append(CPPPATH=["#src/include"]
+--- xmms2-0.2DrGonzo/SConstruct.orig	2006-09-26 15:50:20.000000000 +0200
++++ xmms2-0.2DrGonzo/SConstruct	2023-05-13 18:09:05.863545151 +0200
+@@ -81,8 +81,8 @@ base_env.Append(CPPPATH=["#src/include"]
  Help(opts.GenerateHelpText(base_env))
  
  def do_subst_in_file(targetfile, sourcefile, dict):
@@ -11,24 +11,26 @@
          then all instances of %VERSION% in the file will be replaced with 1.2345 etc.
          """
          try:
-@@ -138,11 +138,11 @@ base_env.handle_targets("Library")
+@@ -148,12 +148,12 @@ base_env.handle_targets("Library")
  base_env.handle_targets("Program")
  
  subst_dict = {"%VERSION%":XMMS_VERSION, "%PLATFORM%":"XMMS_OS_" + base_env.platform.upper().replace("-", ""), 
--	      "%PKGLIBDIR%":base_env["PREFIX"]+"/lib/xmms2",
--	      "%BINDIR%":base_env["PREFIX"]+"/bin",
+-	      "%PKGLIBDIR%":base_env["PLUGINDIR"],
+-	      "%BINDIR%":base_env["BINDIR"],
 -	      "%SHAREDDIR%":base_env.sharepath,
 -	      "%PREFIX%":base_env.install_prefix,
 -	      "%DEFAULT_OUTPUT%":xmmsenv.default_output[1],
-+              "%PKGLIBDIR%":base_env["PREFIX"]+"/lib/xmms2",
-+              "%BINDIR%":base_env["PREFIX"]+"/bin",
+-	      "%USERCONFDIR%":base_env.userconfpath,
++              "%PKGLIBDIR%":base_env["PLUGINDIR"],
++              "%BINDIR%":base_env["BINDIR"],
 +              "%SHAREDDIR%":base_env.sharepath,
 +              "%PREFIX%":base_env.install_prefix,
 +              "%DEFAULT_OUTPUT%":xmmsenv.default_output[1],
++              "%USERCONFDIR%":base_env.userconfpath,
  }
  
  config = base_env.SubstInFile("src/include/xmms/xmms_defs.h", "src/include/xmms/xmms_defs.h.in", SUBST_DICT=subst_dict)
-@@ -162,7 +162,7 @@ def scan_headers(name):
+@@ -171,7 +171,7 @@ def scan_headers(name):
  		newf = dir+"/"+d
  		if os.path.isfile(newf) and newf.endswith('.h'):
  			base_env.add_header(name, newf)
@@ -37,7 +39,7 @@
  scan_headers("xmmsc")
  scan_headers("xmms")
  scan_headers("xmmsclient")
-@@ -177,11 +177,11 @@ base_env.add_manpage(1, 'doc/xmms2-et.1'
+@@ -188,11 +188,11 @@ base_env.add_manpage(1, 'doc/xmms2-mdns-
  #### Generate pc files.
  
  pc_files = [{"name": "xmms2-plugin", "lib":""}, 
@@ -54,9 +56,18 @@
  
  for p in pc_files:
  	d = subst_dict.copy()
---- xmms2-0.2DrAlban/xmmsenv.py.orig	2023-05-09 21:16:22.821611818 +0200
-+++ xmms2-0.2DrAlban/xmmsenv.py	2023-05-09 21:45:23.205516682 +0200
-@@ -352,7 +352,7 @@ class XMMSEnvironment(Environment):
+--- xmms2-0.2DrGonzo/xmmsenv.py.orig	2006-09-26 15:50:20.000000000 +0200
++++ xmms2-0.2DrGonzo/xmmsenv.py	2023-05-13 19:07:22.814600542 +0200
+@@ -445,7 +445,7 @@ class XMMSEnvironment(Environment):
+ 			else:
+ 				if self.platform == 'darwin':
+ 					self["SHLINKFLAGS"] += " -dynamiclib"
+- 					self["SHLINKFLAGS"] += " -single_module"
++					self["SHLINKFLAGS"] += " -single_module"
+ 				if install:
+ 					self.Install(self.librarypath, os.path.join(self.dir, self.shlibname(target)))
+ 					if self.platform == 'darwin':
+@@ -465,7 +465,7 @@ class XMMSEnvironment(Environment):
  	def add_header(self, target, source):
  		self.Install(os.path.join(self.includepath,target), source)
  
@@ -107,3 +118,29 @@
  	val += indent + "}\n"
  	return val
  
+--- xmms2-0.2DrGonzo/src/xmms/Program.orig	2023-05-13 19:08:01.724389749 +0200
++++ xmms2-0.2DrGonzo/src/xmms/Program	2023-05-13 19:18:25.297678229 +0200
+@@ -20,9 +20,9 @@ source = ["main.c",
+           "converter_plugin.c",
+           "ringbuf_xform.c",
+           "outputplugin.c",
+-		  "statfs.c",
+-		  "strfunc.c",
+-		  "bindata.c"]
++          "statfs.c",
++          "strfunc.c",
++          "bindata.c"]
+ 
+ def config(env):
+ 	pluginenv = env.Copy()
+@@ -52,8 +52,8 @@ def config(env):
+ 		except ConfigError:
+ 			pass
+ 
+- 	if env.platform == 'darwin':
+- 		env.Append(LINKFLAGS=['-framework', 'CoreFoundation'])
++	if env.platform == 'darwin':
++		env.Append(LINKFLAGS=['-framework', 'CoreFoundation'])
+ 
+ 	# we have an xmms2d - we might want plugins!
+ 	pluginenv.handle_targets("Plugin")
