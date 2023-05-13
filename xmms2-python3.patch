@@ -108,17 +108,19 @@
  
  base_env.add_script("startup.d", "src/clients/mdns/xmms2-mdns-launcher.sh")
  base_env.add_shared("mind.in.a.box-lament_snipplet.ogg")
---- xmms2-0.2DrDolittle/xmmsenv.py.orig	2006-03-27 21:34:45.000000000 +0200
-+++ xmms2-0.2DrDolittle/xmmsenv.py	2023-05-11 06:27:10.904565049 +0200
-@@ -5,7 +5,6 @@ import shutil
+--- xmms2-0.2DrEvil/xmmsenv.py.orig	2023-05-11 21:28:34.728175487 +0200
++++ xmms2-0.2DrEvil/xmmsenv.py	2023-05-11 21:32:50.826788082 +0200
+@@ -5,8 +5,7 @@ import shutil
  import gzip
  from marshal import load
  from stat import *
 -import operator
+-from popen2 import popen3
++from subprocess import PIPE, Popen
  
  global_libpaths = ["/lib", "/usr/lib"]
  
-@@ -14,8 +13,6 @@ default_output = (-1, "unknown")
+@@ -15,8 +14,6 @@ default_output = (-1, "unknown")
  class ConfigError(Exception):
  	pass
  
@@ -127,16 +129,19 @@
  def installFunc(dest, source, env):
  	"""Copy file, setting sane permissions"""
  	
-@@ -40,7 +37,7 @@ class Target:
+@@ -41,9 +38,9 @@ class Target:
  		self.globs['platform'] = env.platform
  		self.globs['ConfigError'] = ConfigError
  
--		c = compile(file(target).read(), target, "exec")
-+		c = compile(open(target).read(), target, "exec")
- 		eval(c, self.globs)
+-		x = file(target).read()
++		x = open(target).read()
+ 		if x[-1] != '\n':
+-			print "Missing linebreak in %s" % target
++			print("Missing linebreak in %s" % target)
+ 			x += '\n'
  
- 		if not isinstance(self.globs.get("target"), str):
-@@ -87,14 +84,14 @@ class XMMSEnvironment(Environment):
+ 		c = compile(x, target, "exec")
+@@ -93,14 +90,14 @@ class XMMSEnvironment(Environment):
  	def __init__(self, parent=None, options=None, **kw):
  		reconfigure = self.options_changed(options, ['INSTALLPATH'])
  		Environment.__init__(self, options=options, ENV=os.environ)
@@ -153,7 +158,7 @@
  				self.config_cache={}
  		else:
  			self.config_cache={}
-@@ -104,7 +101,7 @@ class XMMSEnvironment(Environment):
+@@ -110,7 +107,7 @@ class XMMSEnvironment(Environment):
  		self.programs=[]
  		self.install_targets=[]
  
@@ -162,7 +167,7 @@
  			self.installdir = os.path.normpath(self["INSTALLDIR"] + '/')
  		else:
  			self.installdir = ""
-@@ -136,7 +133,7 @@ class XMMSEnvironment(Environment):
+@@ -142,7 +139,7 @@ class XMMSEnvironment(Environment):
  			self.platform = sys.platform
  
  		def gzipper(target, source, env):
@@ -171,7 +176,7 @@
  		self['BUILDERS']['GZipper'] = SCons.Builder.Builder(action=SCons.Action.Action(gzipper))
  		
  		if self.platform == 'darwin':
-@@ -152,7 +149,7 @@ class XMMSEnvironment(Environment):
+@@ -158,7 +155,7 @@ class XMMSEnvironment(Environment):
  		self.install_targets.append(target)
  			
  	def tryaction(self, cmd):
@@ -180,7 +185,7 @@
  			return self.config_cache[cmd]
  
  		r = False
-@@ -173,7 +170,7 @@ class XMMSEnvironment(Environment):
+@@ -179,7 +176,7 @@ class XMMSEnvironment(Environment):
  		return r
  
  	def run(self, cmd):
@@ -189,7 +194,7 @@
  			return self.config_cache[cmd]
  
  		try:
-@@ -191,26 +188,26 @@ class XMMSEnvironment(Environment):
+@@ -197,28 +194,29 @@ class XMMSEnvironment(Environment):
  		if libs:
  			cmd += " --libs" 
  		cmd += " \"%s\"" % module
@@ -205,7 +210,11 @@
 +		if cmd in self.config_cache:
  			ret = self.config_cache[cmd]
  		else:
- 			ret = os.popen(cmd).read()
+-			r, w, e = popen3(cmd)
++			p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, text=True)
++			r, w, e = (p.stdout, p.stdin, p.stderr)
+ 			ret = r.read()
+ 
  			if cmd.startswith("pkg-config"):
  				if ret == '':
 -					print " ... no"
@@ -222,7 +231,7 @@
  				sys.exit(-1)
  			raise ConfigError("Command '%s' failed" % cmd)
  		ret = ret.strip()
-@@ -224,18 +221,18 @@ class XMMSEnvironment(Environment):
+@@ -232,11 +230,11 @@ class XMMSEnvironment(Environment):
  		else:
  			key = ("HEADER", header)
  
@@ -236,7 +245,22 @@
  				sys.exit(1)
  			raise ConfigError("Headerfile '%s' not found" % header)
  
- 	def checklib(self, lib, func, fail=False):
+@@ -247,11 +245,11 @@ class XMMSEnvironment(Environment):
+ 		else:
+ 			key = ("HEADER", header)
+ 
+-		if not self.config_cache.has_key(key):
++		if key not in self.config_cache:
+ 			self.config_cache[key] = self.conf.CheckCXXHeader(header)
+ 		if not self.config_cache[key]:
+ 			if fail:
+-				print "Aborting!"
++				print("Aborting!")
+ 				sys.exit(1)
+ 			raise ConfigError("Headerfile '%s' not found" % header)
+ 
+@@ -259,7 +257,7 @@ class XMMSEnvironment(Environment):
+ 	def checklib(self, lib, func, header=0, lang="c", fail=False):
  		key = (lib, func)
  
 -		if not self.config_cache.has_key(key):
@@ -244,7 +268,7 @@
  			#libtool_flags = None
  
  			self.config_cache[key] = ""
-@@ -258,7 +255,7 @@ class XMMSEnvironment(Environment):
+@@ -282,7 +280,7 @@ class XMMSEnvironment(Environment):
  
  		if not self.config_cache[key]:
  			if fail:
@@ -253,7 +277,7 @@
  				sys.exit(1)
  			raise ConfigError("Symbol '%s' in library '%s' not found" % (func, lib))
  
-@@ -394,7 +394,7 @@ class XMMSEnvironment(Environment):
+@@ -425,14 +423,14 @@ class XMMSEnvironment(Environment):
  		if options.files:
  			for filename in options.files:
  				if os.path.exists(filename):
@@ -261,8 +285,6 @@
 +					exec(open(filename).read(), cached)
  		else:
  			return False
- 	
-@@ -403,8 +400,8 @@ class XMMSEnvironment(Environment):
  	
  		for option in options.options:
  			if option.key in exclude: continue
@@ -273,7 +295,7 @@
  					if options.args[option.key] != cached[option.key]:
  						# differnt value
  						return True
-@@ -434,7 +431,7 @@ class XMMSEnvironment(Environment):
+@@ -462,7 +460,7 @@ class XMMSEnvironment(Environment):
  		This will open the libtool file and read the lines
  		that we need.
  		"""
@@ -282,7 +304,7 @@
  		line = f.readline()
  		ret = {}
  		while line:
-@@ -451,13 +448,13 @@ class XMMSEnvironment(Environment):
+@@ -479,13 +477,13 @@ class XMMSEnvironment(Environment):
  		targets = [cls(a[1], self) for a in self.potential_targets if a[0].startswith(targettype)]
  
  		for t in targets:
@@ -385,10 +407,10 @@
  			env.librarypath = env["RUBYARCHDIR"]
  		else:
  			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
---- xmms2-0.1DR2.1/src/xmms/Program.orig	2005-08-18 20:26:23.000000000 +0200
-+++ xmms2-0.1DR2.1/src/xmms/Program	2023-05-06 21:27:24.565567088 +0200
+--- xmms2-0.2DrEvil/src/xmms/Program.orig	2023-05-11 21:33:20.679959687 +0200
++++ xmms2-0.2DrEvil/src/xmms/Program	2023-05-11 21:35:06.382720379 +0200
 @@ -23,7 +23,7 @@ source = ["main.c",
- 	]
+ 		  "statfs.c"]
  
  def config(env):
 -	pluginenv = env.Copy()
@@ -426,9 +448,9 @@
  
      commithash = info[0]
  
---- xmms2-0.2DrDolittle/src/clients/lib/java/Library.orig	2006-03-27 21:34:45.000000000 +0200
-+++ xmms2-0.2DrDolittle/src/clients/lib/java/Library	2023-05-11 06:29:58.761021248 +0200
-@@ -8,14 +8,10 @@ import sys
+--- xmms2-0.2DrEvil/src/clients/lib/java/Library.orig	2006-07-06 22:35:55.000000000 +0200
++++ xmms2-0.2DrEvil/src/clients/lib/java/Library	2023-05-12 06:17:51.984695466 +0200
+@@ -8,42 +8,38 @@ import sys
  
  def walkDirs(path):
  	"""helper function to get a list of all subdirectories"""
@@ -446,7 +468,43 @@
  	return pathlist
  	
  def config(env):
-@@ -47,15 +43,15 @@ def config(env):
+-	print "Checking for swig >= 1.3.25 ... ",
++	print("Checking for swig >= 1.3.25 ... ", end="")
+ 	
+ 	if not env.get('SWIG'):
+-		print "no"
++		print("no")
+ 		raise ConfigError("Couldn't find swig")
+ 
+ 	try:
+ 		version = env.run(env.get('SWIG') + " -version").strip().split("\n")[0].split(' ')[2]
+ 	
+ 		if not version or ([int(a) for a in version.split(".")] < [1,3,25]) :
+-			print "no"
++			print("no")
+ 			raise ConfigError("Need Swig 1.3.25")
+ 	
+-		print version
++		print(version)
+ 	except ValueError:
+-		print "no"
++		print("no")
+ 		raise ConfigError("Couldn't check version of swig")
+ 
+-	print "Checking for presence of java ... ",
++	print("Checking for presence of java ... ", end="")
+ 	
+ 	if not env.get('JAVAC'):
+-		print "no"
++		print("no")
+ 		raise ConfigError("Couldn't find javac")
+ 	
+-	print "yes"
++	print("yes")
+ 	
+ 	# link with xmmsclient is nice.
+ 	if env.platform == 'win32':
+@@ -67,15 +63,15 @@ def config(env):
  		else:
  			raise ConfigError("You need to define JAVA_HOME to install the Java bindings.")
  			# Search for the java compiler

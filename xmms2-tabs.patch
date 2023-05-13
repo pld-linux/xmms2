@@ -1,6 +1,6 @@
---- xmms2-0.2DrDolittle/SConstruct.orig	2006-03-27 21:34:45.000000000 +0200
-+++ xmms2-0.2DrDolittle/SConstruct	2023-05-10 22:01:19.352267823 +0200
-@@ -72,8 +72,8 @@ base_env.Append(CPPPATH=["#src/include"]
+--- xmms2-0.2DrEvil/SConstruct.orig	2006-07-06 22:35:55.000000000 +0200
++++ xmms2-0.2DrEvil/SConstruct	2023-05-11 21:28:12.098298084 +0200
+@@ -71,8 +71,8 @@ base_env.Append(CPPPATH=["#src/include"]
  Help(opts.GenerateHelpText(base_env))
  
  def do_subst_in_file(targetfile, sourcefile, dict):
@@ -11,7 +11,7 @@
          then all instances of %VERSION% in the file will be replaced with 1.2345 etc.
          """
          try:
-@@ -145,11 +145,11 @@ base_env.handle_targets("Library")
+@@ -138,11 +138,11 @@ base_env.handle_targets("Library")
  base_env.handle_targets("Program")
  
  subst_dict = {"%VERSION%":XMMS_VERSION, "%PLATFORM%":"XMMS_OS_" + base_env.platform.upper().replace("-", ""), 
@@ -28,7 +28,7 @@
  }
  
  config = base_env.SubstInFile("src/include/xmms/xmms_defs.h", "src/include/xmms/xmms_defs.h.in", SUBST_DICT=subst_dict)
-@@ -169,7 +169,7 @@ def scan_headers(name):
+@@ -162,7 +162,7 @@ def scan_headers(name):
  		newf = dir+"/"+d
  		if os.path.isfile(newf) and newf.endswith('.h'):
  			base_env.add_header(name, newf)
@@ -37,18 +37,20 @@
  scan_headers("xmmsc")
  scan_headers("xmms")
  scan_headers("xmmsclient")
-@@ -182,10 +182,10 @@ base_env.add_manpage(8, 'doc/xmms2d.8')
+@@ -177,11 +177,11 @@ base_env.add_manpage(1, 'doc/xmms2-et.1'
  #### Generate pc files.
  
  pc_files = [{"name": "xmms2-plugin", "lib":""}, 
 -	    {"name":"xmms2-client", "lib":"-lxmmsclient"},
 -	    {"name":"xmms2-client-glib", "lib":"-lxmmsclient-glib"},
 -	    {"name":"xmms2-client-ecore", "lib":"-lxmmsclient-ecore"},
--	    {"name":"xmms2-client-cpp", "lib":"-lxmmsclient++"}]
+-	    {"name":"xmms2-client-cpp", "lib":"-lxmmsclient -lxmmsclient++"},
+-	    {"name":"xmms2-client-cpp-glib", "lib":"-lxmmsclient-glib -lxmmsclient++-glib"}]
 +            {"name":"xmms2-client", "lib":"-lxmmsclient"},
 +            {"name":"xmms2-client-glib", "lib":"-lxmmsclient-glib"},
 +            {"name":"xmms2-client-ecore", "lib":"-lxmmsclient-ecore"},
-+            {"name":"xmms2-client-cpp", "lib":"-lxmmsclient++"}]
++            {"name":"xmms2-client-cpp", "lib":"-lxmmsclient -lxmmsclient++"},
++            {"name":"xmms2-client-cpp-glib", "lib":"-lxmmsclient-glib -lxmmsclient++-glib"}]
  
  for p in pc_files:
  	d = subst_dict.copy()

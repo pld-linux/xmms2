@@ -64,23 +64,60 @@
  			env.librarypath = os.popen(cmd).read().strip()
  
  		env.pkgconfig("glib-2.0")
---- xmms2-0.2DrDolittle/src/clients/lib/ruby/rb_xmmsclient.c.orig	2023-05-10 22:10:51.432501932 +0200
-+++ xmms2-0.2DrDolittle/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-10 22:36:02.564315428 +0200
-@@ -721,7 +721,7 @@ static VALUE c_playlist_add (VALUE self,
+--- xmms2-0.2DrEvil/src/clients/lib/ruby/rb_xmmsclient.c.orig	2023-05-11 21:39:17.024695868 +0200
++++ xmms2-0.2DrEvil/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-11 21:40:47.684204724 +0200
+@@ -728,7 +728,7 @@ static VALUE c_playlist_add (VALUE self,
  
  	if (!NIL_P (rb_check_string_type (arg)))
  		is_str = true;
--	else if (rb_obj_is_kind_of (arg, rb_cFixnum))
-+	else if (rb_obj_is_kind_of (arg, rb_cInteger))
- 		is_str = false;
- 	else {
+-	else if (!rb_obj_is_kind_of (arg, rb_cFixnum)) {
++	else if (!rb_obj_is_kind_of (arg, rb_cInteger)) {
  		rb_raise (eClientError, "unsupported argument");
-@@ -755,7 +755,7 @@ static VALUE c_playlist_insert (VALUE se
+ 		return Qnil;
+ 	}
+@@ -760,7 +760,7 @@ static VALUE c_playlist_insert (VALUE se
  
  	if (!NIL_P (rb_check_string_type (arg)))
  		is_str = true;
--	else if (rb_obj_is_kind_of (arg, rb_cFixnum))
-+	else if (rb_obj_is_kind_of (arg, rb_cInteger))
- 		is_str = false;
- 	else {
+-	else if (!rb_obj_is_kind_of (arg, rb_cFixnum)) {
++	else if (!rb_obj_is_kind_of (arg, rb_cInteger)) {
  		rb_raise (eClientError, "unsupported argument");
+ 		return Qnil;
+ 	}
+@@ -932,7 +932,7 @@ static VALUE c_medialib_entry_property_s
+ 
+ 	if (!NIL_P (rb_check_string_type (value)))
+ 		is_str = true;
+-	else if (!rb_obj_is_kind_of (value, rb_cFixnum)) {
++	else if (!rb_obj_is_kind_of (value, rb_cInteger)) {
+ 		rb_raise (eClientError, "unsupported argument");
+ 		return Qnil;
+ 	}
+--- xmms2-0.2DrEvil/src/clients/lib/ruby/rb_result.c.orig	2006-07-06 22:35:55.000000000 +0200
++++ xmms2-0.2DrEvil/src/clients/lib/ruby/rb_result.c	2023-05-12 23:07:41.934554417 +0200
+@@ -382,6 +382,7 @@ static VALUE c_propdict_init (VALUE self
+ 	return self;
+ }
+ 
++#ifdef HAVE_RB_PROTECT_INSPECT
+ static VALUE propdict_inspect_cb (VALUE args, VALUE s)
+ {
+ 	VALUE src, key, value;
+@@ -421,6 +422,7 @@ static VALUE c_propdict_inspect (VALUE s
+ {
+ 	return rb_protect_inspect (propdict_inspect, self, 0);
+ }
++#endif
+ 
+ static VALUE c_propdict_aref (VALUE self, VALUE key)
+ {
+@@ -586,7 +588,9 @@ void Init_Result (VALUE mXmms)
+ 	cPropDict = rb_define_class_under (mXmms, "PropDict", rb_cObject);
+ 
+ 	rb_define_method (cPropDict, "initialize", c_propdict_init, 1);
++#ifdef HAVE_RB_PROTECT_INSPECT
+ 	rb_define_method (cPropDict, "inspect", c_propdict_inspect, 0);
++#endif
+ 
+ 	rb_define_method (cPropDict, "[]", c_propdict_aref, 1);
+ 	rb_define_method (cPropDict, "has_key?", c_propdict_has_key, 1);

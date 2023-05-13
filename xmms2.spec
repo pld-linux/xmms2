@@ -10,19 +10,18 @@
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.2DrDolittle
+Version:	0.2DrEvil
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	https://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	93daf53d21d198d8e05bf4de37976d7a
+# Source0-md5:	110e1b5d3d5d89e64c2099cec4d0402b
 Patch0:		%{name}-tabs.patch
 Patch1:		%{name}-python3.patch
 Patch2:		%{name}-link.patch
 Patch3:		%{name}-modplug.patch
-Patch4:		%{name}-mdns.patch
+Patch4:		%{name}-ffmpeg.patch
 Patch5:		%{name}-ruby.patch
-Patch6:		%{name}-sid-update.patch
 Patch7:		%{name}-java.patch
 URL:		http://xmms2.xmms.se/
 BuildRequires:	SDL-devel
@@ -34,6 +33,7 @@ BuildRequires:	avahi-glib-devel
 BuildRequires:	curl-devel >= 7.11.2
 %{?with_efl:BuildRequires:	ecore-devel}
 BuildRequires:	faad2-devel >= 2
+BuildRequires:	ffmpeg-devel >= 2
 %{?with_flac:BuildRequires:	flac-devel < 1.1.3}
 BuildRequires:	gamin-devel
 BuildRequires:	glib2-devel >= 2.2.0
@@ -42,6 +42,7 @@ BuildRequires:	jack-audio-connection-kit-devel
 %{?with_java:BuildRequires:	jdk}
 BuildRequires:	libmad-devel
 BuildRequires:	libmodplug-devel
+BuildRequires:	libmms-devel
 BuildRequires:	libmpcdec-devel
 BuildRequires:	libsidplay2-devel
 BuildRequires:	libsmbclient-devel
@@ -59,6 +60,7 @@ BuildRequires:	scons >= 4
 BuildRequires:	sed >= 4.0
 #BuildRequires:	speex-devel
 BuildRequires:	sqlite3-devel >= 3.2
+BuildRequires:	swig >= 1.3.25
 Obsoletes:	xmms2-input-cd < 0.2DrCox
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -291,6 +293,18 @@ This package enables WAV decoding for xmms2.
 %description input-wav -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie WAV przez xmms2.
 
+%package input-wma
+Summary:	WMA decoder
+Summary(pl.UTF-8):	Dekoder WMA
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description input-wma
+This package enables WMA decoding for xmms2.
+
+%description input-wma -l pl.UTF-8
+Ten pakiet umożliwia dekodowanie WMA przez xmms2.
+
 %package output-alsa
 Summary:	ALSA output
 Summary(pl.UTF-8):	Wyjście ALSA
@@ -351,6 +365,18 @@ This package contains a GnomeVFS transport for xmms2.
 %description transport-gnomevfs -l pl.UTF-8
 Ten pakiet zawiera transport GnomeVFS dla xmms2.
 
+%package transport-mms
+Summary:	MMS transport
+Summary(pl.UTF-8):	Transport MMS
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description transport-mms
+This package enables MMS transport for xmms2.
+
+%description transport-mms -l pl.UTF-8
+Ten pakiet umożliwia odbiór danych MMS przez xmms2.
+
 %package transport-samba
 Summary:	Samba transport
 Summary(pl.UTF-8):	Transport Samba
@@ -383,9 +409,8 @@ xmms2.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
-%patch4 -p1
+%patch4 -p1 -b .orig
 %patch5 -p1
-%patch6 -p1
 %patch7 -p1
 
 %{__sed} -i xmms2.pc.in \
@@ -423,19 +448,23 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS ChangeLog README TODO
+%doc AUTHORS COPYING README TODO
 %attr(755,root,root) %{_bindir}/xmms2-launcher
 %attr(755,root,root) %{_bindir}/xmms2d
 %attr(755,root,root) %{_libdir}/libxmmsclient.so.0
 %dir %{_libdir}/%{name}
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_diskwrite.so
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_eq.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_equalizer.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_file.so
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_html.so
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_m3u.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_icymetaint.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_id3v2.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_null.so
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_nulstripper.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_replaygain.so
+# disabled since 0.2DrEvil
+#%attr(755,root,root) %{_libdir}/%{name}/libxmms_html.so
+#%attr(755,root,root) %{_libdir}/%{name}/libxmms_m3u.so
+#%attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
 %{_datadir}/%{name}
 %{_mandir}/man8/xmms2d.8*
 
@@ -449,6 +478,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/xmms2-mdns-dnssd
 %attr(755,root,root) %{_bindir}/xmms2-mlib-updater
 %{_mandir}/man1/xmms2.1*
+%{_mandir}/man1/xmms2-et.1*
 
 %files client-sdlvis
 %defattr(644,root,root,755)
@@ -469,6 +499,7 @@ rm -rf $RPM_BUILD_ROOT
 %files client-lib-glib
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libxmmsclient-glib.so.0
+%attr(755,root,root) %{_libdir}/libxmmsclient++-glib.so.0
 
 %if %{with ruby}
 %files client-lib-glib-ruby
@@ -537,6 +568,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_wave.so
 
+%files input-wma
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_wma.so
+
 ### output
 %files output-alsa
 %defattr(644,root,root,755)
@@ -558,6 +593,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_gnomevfs.so
 
+%files transport-mms
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_mms.so
+
 %files transport-samba
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_smb.so
@@ -566,11 +605,14 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libxmmsclient.so
 %attr(755,root,root) %{_libdir}/libxmmsclient-glib.so
+%attr(755,root,root) %{_libdir}/libxmmsclient++-glib.so
 %{_includedir}/xmms2
 %{_libdir}/libxmmsclient.a
 %{_libdir}/libxmmsclient-glib.a
+%{_libdir}/libxmmsclient++-glib.a
 %{_pkgconfigdir}/xmms2-client.pc
 %{_pkgconfigdir}/xmms2-client-cpp.pc
+%{_pkgconfigdir}/xmms2-client-cpp-glib.pc
 %{_pkgconfigdir}/xmms2-client-ecore.pc
 %{_pkgconfigdir}/xmms2-client-glib.pc
 %{_pkgconfigdir}/xmms2-plugin.pc

@@ -1,10 +1,10 @@
---- xmms2-0.2DrDolittle/src/clients/lib/java/Library.orig	2023-05-11 12:50:52.113122775 +0200
-+++ xmms2-0.2DrDolittle/src/clients/lib/java/Library	2023-05-11 20:55:45.265511648 +0200
-@@ -103,7 +103,7 @@ def config(env):
+--- xmms2-0.2DrEvil/src/clients/lib/java/Library.orig	2023-05-11 22:00:10.991235882 +0200
++++ xmms2-0.2DrEvil/src/clients/lib/java/Library	2023-05-11 22:01:06.790933589 +0200
+@@ -123,7 +123,7 @@ def config(env):
  	
  	env.Java(target = mydir, source = [mydir + '/src'])
  	env.Jar(target=mydir + '/xmms2java.jar', source=mydir + '/org')
--	env.Install(env['PREFIX'] + 'share/xmms2/java', mydir + '/xmms2java.jar')
+-	env.Install(env['PREFIX'] + '/share/xmms2/java', mydir + '/xmms2java.jar')
 +	env.Install(env['PREFIX'] + '/share/java', mydir + '/xmms2java.jar')
  	def mkdir(target, source, env):
  		try:
