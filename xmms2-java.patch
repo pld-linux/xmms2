@@ -9,13 +9,3 @@
  	def mkdir(target, source, env):
  		try:
  			os.mkdir(mydir + "/src/org/xmms2/wrapper/xmms2bindings")
---- xmms2-0.2DrGonzo/src/clients/lib/java/misc.c.orig	2006-09-26 15:50:20.000000000 +0200
-+++ xmms2-0.2DrGonzo/src/clients/lib/java/misc.c	2023-05-13 19:59:12.574420194 +0200
-@@ -14,6 +14,7 @@
-  *  Lesser General Public License for more details.
-  */
- 
-+#include <limits.h>
- #include <stdio.h>
- #include <xmmsclient/xmmsclient.h>
- #include <xmms/xmms_defs.h>

@@ -1,5 +1,5 @@
---- xmms2-0.2DrGonzo/SConstruct.orig	2023-05-13 18:09:37.823372009 +0200
-+++ xmms2-0.2DrGonzo/SConstruct	2023-05-13 18:32:37.612563716 +0200
+--- xmms2-0.2DrHouse/SConstruct.orig	2023-05-13 22:20:48.565060133 +0200
++++ xmms2-0.2DrHouse/SConstruct	2023-05-13 22:25:42.430134796 +0200
 @@ -5,7 +5,6 @@ import sys
  import SCons
  import re
@@ -40,7 +40,7 @@
  
  # base CCPATH
  base_env = xmmsenv.XMMSEnvironment(options=opts)
-@@ -72,7 +72,7 @@ except xmmsenv.ConfigError:
+@@ -73,7 +72,7 @@ except xmmsenv.ConfigError:
  		os.remove("config.cache")
  	except:
  		pass
@@ -117,10 +117,10 @@
 +print(", ".join(foo))
 +print("Default output:", xmmsenv.default_output[1])
  
- base_env.add_script("startup.d", "src/clients/mdns/xmms2-mdns-launcher.sh")
  base_env.add_shared("mind.in.a.box-lament_snipplet.ogg")
---- xmms2-0.2DrGonzo/xmmsenv.py.orig	2023-05-13 18:32:56.662460514 +0200
-+++ xmms2-0.2DrGonzo/xmmsenv.py	2023-05-13 18:33:57.138799553 +0200
+ base_env.Alias('install', base_env.install_targets)
+--- xmms2-0.2DrHouse/xmmsenv.py.orig	2023-05-13 22:26:34.319853686 +0200
++++ xmms2-0.2DrHouse/xmmsenv.py	2023-05-13 22:41:26.755018949 +0200
 @@ -5,8 +5,7 @@ import shutil
  import gzip
  from marshal import load
@@ -140,7 +140,7 @@
  
  def find_static_lib(env, lib):
  	libname = "lib%s.a" % lib
-@@ -48,9 +45,9 @@ class Target:
+@@ -56,9 +53,9 @@ class Target:
  		self.globs['platform'] = env.platform
  		self.globs['ConfigError'] = ConfigError
  
@@ -152,7 +152,7 @@
  			x += '\n'
  
  		c = compile(x, target, "exec")
-@@ -101,14 +98,14 @@ class XMMSEnvironment(Environment):
+@@ -109,14 +106,14 @@ class XMMSEnvironment(Environment):
  	def __init__(self, parent=None, options=None, **kw):
  		reconfigure = self.options_changed(options, ['INSTALLPATH'])
  		Environment.__init__(self, options=options, ENV=os.environ)
@@ -169,7 +169,7 @@
  				self.config_cache={}
  		else:
  			self.config_cache={}
-@@ -118,7 +115,7 @@ class XMMSEnvironment(Environment):
+@@ -126,7 +123,7 @@ class XMMSEnvironment(Environment):
  		self.programs=[]
  		self.install_targets=[]
  
@@ -178,7 +178,7 @@
  			self.installdir = os.path.normpath(self["INSTALLDIR"] + '/')
  		else:
  			self.installdir = ""
-@@ -147,7 +147,7 @@ class XMMSEnvironment(Environment):
+@@ -158,7 +155,7 @@ class XMMSEnvironment(Environment):
  			self.platform = sys.platform
  
  		# Where to place the xmms2 user config directory
@@ -187,7 +187,7 @@
  			self.userconfpath = self["USERCONFDIR"]
  		else:
  			if sys.platform == 'darwin':
-@@ -159,7 +156,7 @@ class XMMSEnvironment(Environment):
+@@ -167,7 +164,7 @@ class XMMSEnvironment(Environment):
  				self.userconfpath = '.config/xmms2'
  
  		def gzipper(target, source, env):
@@ -196,16 +196,16 @@
  		self['BUILDERS']['GZipper'] = SCons.Builder.Builder(action=SCons.Action.Action(gzipper))
  		
  		if self.platform == 'darwin':
-@@ -178,7 +175,7 @@ class XMMSEnvironment(Environment):
+@@ -186,7 +183,7 @@ class XMMSEnvironment(Environment):
  		self.install_targets.append(target)
- 			
+ 
  	def tryaction(self, cmd):
 -		if self.config_cache.has_key(cmd):
 +		if cmd in self.config_cache:
  			return self.config_cache[cmd]
  
  		r = False
-@@ -199,7 +196,7 @@ class XMMSEnvironment(Environment):
+@@ -207,7 +204,7 @@ class XMMSEnvironment(Environment):
  		return r
  
  	def run(self, cmd):
@@ -214,7 +214,7 @@
  			return self.config_cache[cmd]
  
  		try:
-@@ -217,28 +214,29 @@ class XMMSEnvironment(Environment):
+@@ -225,28 +222,29 @@ class XMMSEnvironment(Environment):
  		if libs:
  			cmd += " --libs" 
  		cmd += " \"%s\"" % module
@@ -251,7 +251,7 @@
  				sys.exit(-1)
  			raise ConfigError("Command '%s' failed" % cmd)
  		ret = ret.strip()
-@@ -252,33 +250,33 @@ class XMMSEnvironment(Environment):
+@@ -260,33 +258,33 @@ class XMMSEnvironment(Environment):
  		else:
  			key = ("HEADER", header)
  
@@ -295,7 +295,7 @@
  		if not self.config_cache["cpp"]:
  			raise ConfigError("couldn't compile CPP files")
  
-@@ -289,11 +287,11 @@ class XMMSEnvironment(Environment):
+@@ -297,11 +295,11 @@ class XMMSEnvironment(Environment):
  		else:
  			key = ("HEADER", header)
  
@@ -309,7 +309,7 @@
  				sys.exit(1)
  			raise ConfigError("Headerfile '%s' not found" % header)
  
-@@ -301,7 +299,7 @@ class XMMSEnvironment(Environment):
+@@ -309,7 +307,7 @@ class XMMSEnvironment(Environment):
  	def checklib(self, lib, func, header=0, lang="c", fail=False):
  		key = (lib, func)
  
@@ -318,7 +318,7 @@
  			#libtool_flags = None
  
  			self.config_cache[key] = ""
-@@ -324,7 +322,7 @@ class XMMSEnvironment(Environment):
+@@ -332,7 +330,7 @@ class XMMSEnvironment(Environment):
  
  		if not self.config_cache[key]:
  			if fail:
@@ -327,7 +327,7 @@
  				sys.exit(1)
  			raise ConfigError("Symbol '%s' in library '%s' not found" % (func, lib))
  
-@@ -478,14 +476,14 @@ class XMMSEnvironment(Environment):
+@@ -489,14 +487,14 @@ class XMMSEnvironment(Environment):
  		if options.files:
  			for filename in options.files:
  				if os.path.exists(filename):
@@ -345,7 +345,7 @@
  					if options.args[option.key] != cached[option.key]:
  						# differnt value
  						return True
-@@ -515,7 +513,7 @@ class XMMSEnvironment(Environment):
+@@ -526,7 +524,7 @@ class XMMSEnvironment(Environment):
  		This will open the libtool file and read the lines
  		that we need.
  		"""
@@ -354,7 +354,7 @@
  		line = f.readline()
  		ret = {}
  		while line:
-@@ -532,13 +530,13 @@ class XMMSEnvironment(Environment):
+@@ -543,13 +541,13 @@ class XMMSEnvironment(Environment):
  		targets = [cls(a[1], self) for a in self.potential_targets if a[0].startswith(targettype)]
  
  		for t in targets:
@@ -457,10 +457,10 @@
  			env.librarypath = env["RUBYARCHDIR"]
  		else:
  			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
---- xmms2-0.2DrGonzo/src/xmms/Program.orig	2023-05-13 18:34:24.915315741 +0200
-+++ xmms2-0.2DrGonzo/src/xmms/Program	2023-05-13 18:34:56.695143575 +0200
-@@ -25,7 +25,7 @@ source = ["main.c",
-           "bindata.c"]
+--- xmms2-0.2DrHouse/src/xmms/Program.orig	2023-05-13 23:04:50.170749327 +0200
++++ xmms2-0.2DrHouse/src/xmms/Program	2023-05-13 23:10:10.055683028 +0200
+@@ -26,7 +26,7 @@ source = ["main.c",
+           "utils.c"]
  
  def config(env):
 -	pluginenv = env.Copy()

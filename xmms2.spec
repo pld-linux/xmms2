@@ -10,19 +10,19 @@
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.2DrGonzo
+Version:	0.2DrHouse
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	https://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	0845dc7ce04d1825c28566b5c36f23b3
+# Source0-md5:	8f7293b21bd6cb28e7705559a9deab10
 Patch0:		%{name}-tabs.patch
 Patch1:		%{name}-python3.patch
 Patch2:		%{name}-link.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-ffmpeg.patch
 Patch5:		%{name}-ruby.patch
-Patch6:		%{name}-man.patch
+Patch6:		%{name}-mdns-launcher-conflict.patch
 Patch7:		%{name}-java.patch
 URL:		http://xmms2.xmms.se/
 BuildRequires:	SDL-devel
@@ -35,17 +35,20 @@ BuildRequires:	curl-devel >= 7.11.2
 %{?with_efl:BuildRequires:	ecore-devel}
 BuildRequires:	faad2-devel >= 2
 BuildRequires:	ffmpeg-devel >= 2
+BuildRequires:	fftw3-single-devel >= 3
 %{?with_flac:BuildRequires:	flac-devel < 1.1.3}
 BuildRequires:	gamin-devel
 BuildRequires:	glib2-devel >= 2.2.0
 BuildRequires:	gnome-vfs2-devel >= 2.0
 BuildRequires:	jack-audio-connection-kit-devel
 %{?with_java:BuildRequires:	jdk}
+BuildRequires:	libao-devel
 BuildRequires:	libmad-devel
 BuildRequires:	libmodplug-devel
 BuildRequires:	libmms-devel
 BuildRequires:	libmpcdec-devel
 BuildRequires:	libogg-devel
+BuildRequires:	libsamplerate-devel
 BuildRequires:	libshout-devel
 BuildRequires:	libsidplay2-devel
 BuildRequires:	libsmbclient-devel
@@ -187,6 +190,18 @@ Ruby bindings for the xmms2 client library.
 %description client-lib-ruby -l pl.UTF-8
 Wiązania Ruby'ego dla biblioteki klienckiej xmms2.
 
+%package effect-vocoder
+Summary:	Vocoder effect
+Summary(pl.UTF-8):	Efekt vocoder
+Group:		Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description effect-vocoder
+This package enables phase vocoder effect for xmms2.
+
+%description effect-vocoder -l pl.UTF-8
+Ten pakiet obsługuje efekt fazowego vocodera w xmms2.
+
 %package input-faad
 Summary:	AAC decorer
 Summary(pl.UTF-8):	Dekoder AAC
@@ -319,6 +334,18 @@ This package enables ALSA output for xmms2.
 
 %description output-alsa -l pl.UTF-8
 Ten pakiet udostępnia wyjście ALSA dla xmms2.
+
+%package output-ao
+Summary:	AO output
+Summary(pl.UTF-8):	Wyjście AO
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description output-ao
+This package enables AO output for xmms2.
+
+%description output-ao -l pl.UTF-8
+Ten pakiet udostępnia wyjście AO dla xmms2.
 
 %package output-ices
 Summary:	ICES (Icecast source) output
@@ -496,8 +523,8 @@ rm -rf $RPM_BUILD_ROOT
 #%attr(755,root,root) %{_libdir}/%{name}/libxmms_m3u.so
 #%attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
 %{_datadir}/%{name}
-%{_mandir}/man8/xmms2-launcher.8*
-%{_mandir}/man8/xmms2d.8*
+%{_mandir}/man1/xmms2-launcher.1*
+%{_mandir}/man1/xmms2d.1*
 
 ### clients
 %files client-cli
@@ -510,7 +537,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/xmms2-mlib-updater
 %{_mandir}/man1/xmms2.1*
 %{_mandir}/man1/xmms2-et.1*
-%{_mandir}/man8/xmms2-mdns-avahi.8*
+%{_mandir}/man1/xmms2-mdns-avahi.1*
 
 %files client-sdlvis
 %defattr(644,root,root,755)
@@ -557,6 +584,11 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{ruby_vendorarchdir}/xmmsclient.so
 %endif
+
+### effect
+%files effect-vocoder
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_vocoder.so
 
 ### input
 %files input-faad
@@ -609,6 +641,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_alsa.so
 
+%files output-ao
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_ao.so
+
 %files output-ices
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_ices.so
@@ -624,6 +660,8 @@ rm -rf $RPM_BUILD_ROOT
 %files transport-curl
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_curl_http.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_lastfm.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_lastfmeta.so
 
 %files transport-daap
 %defattr(644,root,root,755)

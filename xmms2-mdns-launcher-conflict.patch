@@ -1,0 +1,7 @@
+--- xmms2-0.2DrHouse/src/clients/mdns/dns_sd/Program.orig	2006-12-03 00:01:08.000000000 +0100
++++ xmms2-0.2DrHouse/src/clients/mdns/dns_sd/Program	2023-05-14 07:23:59.735165278 +0200
+@@ -11,4 +11,3 @@ def config(env):
+ 	# on macosx it's in libc? 
+ 	if env.platform != "darwin":
+ 		env.checklib("dns_sd", "DNSServiceRegister")
+-	env.add_script("startup.d", "src/clients/mdns/dns_sd/xmms2-mdns-launcher.sh.in")
