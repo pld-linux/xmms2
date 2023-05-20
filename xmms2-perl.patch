@@ -1,0 +1,11 @@
+--- xmms2-0.2DrJekyll/src/clients/lib/perl/wscript.orig	2007-05-20 17:55:40.000000000 +0200
++++ xmms2-0.2DrJekyll/src/clients/lib/perl/wscript	2023-05-19 19:41:28.398438169 +0200
+@@ -50,7 +50,7 @@ def configure(conf):
+     conf.env["CCFLAGS_perl"] += ' -DVERSION="0.03"'
+ 
+     if not Params.g_options.perlarchdir:
+-        conf.env["ARCHDIR_perl"] = os.popen(perl + " -MConfig -e'print $Config{sitearch}'").read()
++        conf.env["ARCHDIR_perl"] = os.popen(perl + " -MConfig -e'print $Config{vendorarch}'").read()
+     else:
+         conf.env["ARCHDIR_perl"] = Params.g_options.perlarchdir
+ 

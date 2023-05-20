@@ -1,84 +1,6 @@
---- xmms2-0.2DrGonzo/SConstruct.orig	2006-09-26 15:50:20.000000000 +0200
-+++ xmms2-0.2DrGonzo/SConstruct	2023-05-13 18:09:05.863545151 +0200
-@@ -81,8 +81,8 @@ base_env.Append(CPPPATH=["#src/include"]
- Help(opts.GenerateHelpText(base_env))
- 
- def do_subst_in_file(targetfile, sourcefile, dict):
--	"""Replace all instances of the keys of dict with their values.
--	For example, if dict is {'%VERSION%': '1.2345', '%BASE%': 'MyProg'},
-+        """Replace all instances of the keys of dict with their values.
-+        For example, if dict is {'%VERSION%': '1.2345', '%BASE%': 'MyProg'},
-         then all instances of %VERSION% in the file will be replaced with 1.2345 etc.
-         """
-         try:
-@@ -148,12 +148,12 @@ base_env.handle_targets("Library")
- base_env.handle_targets("Program")
- 
- subst_dict = {"%VERSION%":XMMS_VERSION, "%PLATFORM%":"XMMS_OS_" + base_env.platform.upper().replace("-", ""), 
--	      "%PKGLIBDIR%":base_env["PLUGINDIR"],
--	      "%BINDIR%":base_env["BINDIR"],
--	      "%SHAREDDIR%":base_env.sharepath,
--	      "%PREFIX%":base_env.install_prefix,
--	      "%DEFAULT_OUTPUT%":xmmsenv.default_output[1],
--	      "%USERCONFDIR%":base_env.userconfpath,
-+              "%PKGLIBDIR%":base_env["PLUGINDIR"],
-+              "%BINDIR%":base_env["BINDIR"],
-+              "%SHAREDDIR%":base_env.sharepath,
-+              "%PREFIX%":base_env.install_prefix,
-+              "%DEFAULT_OUTPUT%":xmmsenv.default_output[1],
-+              "%USERCONFDIR%":base_env.userconfpath,
- }
- 
- config = base_env.SubstInFile("src/include/xmms/xmms_defs.h", "src/include/xmms/xmms_defs.h.in", SUBST_DICT=subst_dict)
-@@ -171,7 +171,7 @@ def scan_headers(name):
- 		newf = dir+"/"+d
- 		if os.path.isfile(newf) and newf.endswith('.h'):
- 			base_env.add_header(name, newf)
--			
-+
- scan_headers("xmmsc")
- scan_headers("xmms")
- scan_headers("xmmsclient")
-@@ -188,11 +188,11 @@ base_env.add_manpage(1, 'doc/xmms2-mdns-
- #### Generate pc files.
- 
- pc_files = [{"name": "xmms2-plugin", "lib":""}, 
--	    {"name":"xmms2-client", "lib":"-lxmmsclient"},
--	    {"name":"xmms2-client-glib", "lib":"-lxmmsclient-glib"},
--	    {"name":"xmms2-client-ecore", "lib":"-lxmmsclient-ecore"},
--	    {"name":"xmms2-client-cpp", "lib":"-lxmmsclient -lxmmsclient++"},
--	    {"name":"xmms2-client-cpp-glib", "lib":"-lxmmsclient-glib -lxmmsclient++-glib"}]
-+            {"name":"xmms2-client", "lib":"-lxmmsclient"},
-+            {"name":"xmms2-client-glib", "lib":"-lxmmsclient-glib"},
-+            {"name":"xmms2-client-ecore", "lib":"-lxmmsclient-ecore"},
-+            {"name":"xmms2-client-cpp", "lib":"-lxmmsclient -lxmmsclient++"},
-+            {"name":"xmms2-client-cpp-glib", "lib":"-lxmmsclient-glib -lxmmsclient++-glib"}]
- 
- for p in pc_files:
- 	d = subst_dict.copy()
---- xmms2-0.2DrGonzo/xmmsenv.py.orig	2006-09-26 15:50:20.000000000 +0200
-+++ xmms2-0.2DrGonzo/xmmsenv.py	2023-05-13 19:07:22.814600542 +0200
-@@ -445,7 +445,7 @@ class XMMSEnvironment(Environment):
- 			else:
- 				if self.platform == 'darwin':
- 					self["SHLINKFLAGS"] += " -dynamiclib"
-- 					self["SHLINKFLAGS"] += " -single_module"
-+					self["SHLINKFLAGS"] += " -single_module"
- 				if install:
- 					self.Install(self.librarypath, os.path.join(self.dir, self.shlibname(target)))
- 					if self.platform == 'darwin':
-@@ -465,7 +465,7 @@ class XMMSEnvironment(Environment):
- 	def add_header(self, target, source):
- 		self.Install(os.path.join(self.includepath,target), source)
- 
--        def add_manpage(self, section, source):
-+	def add_manpage(self, section, source):
- 		self.GZipper(source + '.gz', source)
- 		self.Install(os.path.join(self.manpath, "man"+str(section)), source+'.gz')
- 
---- xmms2-0.2DrDolittle/src/xmms/generate-converter.py.orig	2006-03-27 21:34:45.000000000 +0200
-+++ xmms2-0.2DrDolittle/src/xmms/generate-converter.py	2023-05-11 17:52:42.631056661 +0200
-@@ -150,10 +150,10 @@ def get_channelconv(numin, numout, t):
+--- xmms2-0.2DrJekyll/src/xmms/sample.genpy.orig	2007-05-20 17:55:40.000000000 +0200
++++ xmms2-0.2DrJekyll/src/xmms/sample.genpy	2023-05-14 18:51:40.261637819 +0200
+@@ -152,10 +152,10 @@ def get_channelconv(numin, numout, t):
  		for a in range(numout):
  			out += "\t\tout[%d] = WRITE%s(temp[%d]);\n" % (a,t,a)
  	elif numin == 1 and numout == 2:
@@ -92,7 +14,7 @@
  	else:
  		raise RuntimeError("go implement channelconversion from %d to %d channels" % (numin, numout))
  	return out
-@@ -194,11 +194,11 @@ def make_conv(fields, curr):
+@@ -196,11 +196,11 @@ def make_conv(fields, curr):
  			out = re.sub(key,str(val),out)
  
  		out = re.sub("CONVERTER",
@@ -102,14 +24,14 @@
 -			     out)
 -		
 +			get_channelconv(curr['INCHANNELS'],
-+					curr['OUTCHANNELS'],
-+					curr['OUTTYPE']),
++				curr['OUTCHANNELS'],
++				curr['OUTTYPE']),
 +			out)
 +
  		return out
  
  
-@@ -232,7 +232,7 @@ def make_switch(fields, curr):
+@@ -234,7 +234,7 @@ def make_switch(fields, curr):
  			val += indent + "case XMMS_SAMPLE_FORMAT_%s:\n" % a.upper()
  		else:
  			val += indent + "case %s:\n" % a
@@ -118,31 +40,3 @@
  	val += indent + "}\n"
  	return val
  
---- xmms2-0.2DrHouse/src/xmms/Program.orig	2006-12-03 00:01:08.000000000 +0100
-+++ xmms2-0.2DrHouse/src/xmms/Program	2023-05-13 22:16:01.913279726 +0200
-@@ -20,10 +20,10 @@ source = ["main.c",
-           "converter_plugin.c",
-           "ringbuf_xform.c",
-           "outputplugin.c",
--		  "statfs.c",
--		  "strfunc.c",
--		  "bindata.c",
--		  "utils.c"]
-+          "statfs.c",
-+          "strfunc.c",
-+          "bindata.c",
-+          "utils.c"]
- 
- def config(env):
- 	pluginenv = env.Copy()
-@@ -58,8 +58,8 @@ def config(env):
- 		except ConfigError:
- 			pass
- 
-- 	if env.platform == 'darwin':
-- 		env.Append(LINKFLAGS=['-framework', 'CoreFoundation'])
-+	if env.platform == 'darwin':
-+		env.Append(LINKFLAGS=['-framework', 'CoreFoundation'])
- 
- 	# we have an xmms2d - we might want plugins!
- 	pluginenv.handle_targets("Plugin")

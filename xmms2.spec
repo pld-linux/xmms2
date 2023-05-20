@@ -1,32 +1,35 @@
-# XXX: what about -devel? shouldn't -static be separated?
+# XXX: split -devel?
 #
 # Conditional build:
 %bcond_with	efl	# ecore client library
-%bcond_without	java	# Java/JNI module
-%bcond_with	python	# Python module (doesn't build with python3-based scons 4)
+%bcond_with	sdl	# sdlvis client (no build system since 0.2DrJekyll)
+%bcond_with	java	# Java/JNI module (removed in 0.2DrJekyll)
+%bcond_without	perl	# Perl module
+%bcond_with	python	# Python module (doesn't build with python 2.7)
 %bcond_without	ruby	# Ruby modules
-%bcond_with	flac	# flac plugin (incompatible with 1.1.3+)
+%bcond_without	flac	# flac plugin
 
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.2DrHouse
+Version:	0.2DrJekyll
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	https://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	8f7293b21bd6cb28e7705559a9deab10
+# Source0-md5:	768de76a98b6a9766cec157ff0a12543
 Patch0:		%{name}-tabs.patch
-Patch1:		%{name}-python3.patch
-Patch2:		%{name}-link.patch
+Patch1:		%{name}-perl.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-ffmpeg.patch
 Patch5:		%{name}-ruby.patch
 Patch6:		%{name}-mdns-launcher-conflict.patch
-Patch7:		%{name}-java.patch
+Patch8:		%{name}-waf.patch
 URL:		http://xmms2.xmms.se/
+%if %{with sdl}
 BuildRequires:	SDL-devel
 BuildRequires:	SDL_ttf-devel
+%endif
 BuildRequires:	alsa-lib-devel
 BuildRequires:	avahi-devel
 BuildRequires:	avahi-compat-libdns_sd-devel
@@ -36,17 +39,20 @@ BuildRequires:	curl-devel >= 7.11.2
 BuildRequires:	faad2-devel >= 2
 BuildRequires:	ffmpeg-devel >= 2
 BuildRequires:	fftw3-single-devel >= 3
-%{?with_flac:BuildRequires:	flac-devel < 1.1.3}
+%{?with_flac:BuildRequires:	flac-devel >= 1.1.3}
 BuildRequires:	gamin-devel
-BuildRequires:	glib2-devel >= 2.2.0
+BuildRequires:	glib2-devel >= 1:2.6.0
 BuildRequires:	gnome-vfs2-devel >= 2.0
 BuildRequires:	jack-audio-connection-kit-devel
 %{?with_java:BuildRequires:	jdk}
 BuildRequires:	libao-devel
+BuildRequires:	libcdio-paranoia-devel
+BuildRequires:	libdiscid-devel
 BuildRequires:	libmad-devel
 BuildRequires:	libmodplug-devel
 BuildRequires:	libmms-devel
 BuildRequires:	libmpcdec-devel
+BuildRequires:	libofa-devel
 BuildRequires:	libogg-devel
 BuildRequires:	libsamplerate-devel
 BuildRequires:	libshout-devel
@@ -54,6 +60,7 @@ BuildRequires:	libsidplay2-devel
 BuildRequires:	libsmbclient-devel
 BuildRequires:	libstdc++-devel
 BuildRequires:	libvorbis-devel
+BuildRequires:	libxml2-devel >= 2.0
 BuildRequires:	pkgconfig
 %if %{with python}
 BuildRequires:	python-Pyrex >= 0.9.4.2
@@ -67,7 +74,6 @@ BuildRequires:	sed >= 4.0
 #BuildRequires:	speex-devel
 BuildRequires:	sqlite3-devel >= 3.2
 BuildRequires:	swig >= 1.3.25
-Obsoletes:	xmms2-input-cd < 0.2DrCox
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -165,6 +171,18 @@ Java bindings for the xmms2 clientlib.
 %description client-lib-java -l pl.UTF-8
 Wiązania Javy do xmms2.
 
+%package client-lib-perl
+Summary:	Perl client library for XMMS2
+Summary(pl.UTF-8):	Biblioteka kliencka Perla do XMMS2
+Group:		Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description client-lib-perl
+Perl client library for XMMS2.
+
+%description client-lib-perl -l pl.UTF-8
+Biblioteka kliencka Perla do XMMS2.
+
 %package client-lib-python
 Summary:	xmms2 Python bindings
 Summary(pl.UTF-8):	Wiązania Pythona do XMMS2
@@ -202,6 +220,18 @@ This package enables phase vocoder effect for xmms2.
 %description effect-vocoder -l pl.UTF-8
 Ten pakiet obsługuje efekt fazowego vocodera w xmms2.
 
+%package input-cd
+Summary:	CD DA input
+Summary(pl.UTF-8):	Wejście CD DA
+Group:		Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description input-cd
+This package enables reading of CD DA for xmms2.
+
+%description input-cd -l pl.UTF-8
+Ten pakiet umożliwia odczyt płyt CD DA przez xmms2.
+
 %package input-faad
 Summary:	AAC decorer
 Summary(pl.UTF-8):	Dekoder AAC
@@ -214,6 +244,19 @@ This package enables AAC decoding using faad2 library for xmms2.
 %description input-faad -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie plików AAC przez xmms2 przy użyciu
 biblioteki faad2.
+
+%package input-ffmpeg
+Summary:	FFmpeg decoder
+Summary(pl.UTF-8):	Dekoder FFmpeg
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+Obsoletes:	xmms2-input-wma < 0.2DrJekyll
+
+%description input-ffmpeg
+This package enables audio decoding via FFmpeg for xmms2.
+
+%description input-ffmpeg -l pl.UTF-8
+Ten pakiet umożliwia dekodowanie dźwięku przez FFmpeg w xmms2.
 
 %package input-flac
 Summary:	FLAC decorer
@@ -310,18 +353,6 @@ This package enables WAV decoding for xmms2.
 
 %description input-wav -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie WAV przez xmms2.
-
-%package input-wma
-Summary:	WMA decoder
-Summary(pl.UTF-8):	Dekoder WMA
-Group:		X11/Applications/Sound
-Requires:	%{name} = %{version}-%{release}
-
-%description input-wma
-This package enables WMA decoding for xmms2.
-
-%description input-wma -l pl.UTF-8
-Ten pakiet umożliwia dekodowanie WMA przez xmms2.
 
 %package output-alsa
 Summary:	ALSA output
@@ -461,67 +492,92 @@ xmms2.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
 %patch6 -p1
-%patch7 -p1
+%patch8 -p1
 
-%{__sed} -i xmms2.pc.in \
-	-e '/^libdir/ s,/lib$,/%{_lib},'
-%{__sed} -i SConstruct \
-	-e '/%PKGLIBDIR%/ s,/lib/,/%{_lib}/,'
-%{__sed} -i xmmsenv.py \
-	-e '/os\.path\.join(self\.install_prefix.*"lib/s@"lib@"%{_lib}@'
-%{__sed} -i src/clients/lib/python/Library \
-	-e 's/get_python_lib()/get_python_lib(plat_specific=True)/'
+# sanitize version to avoid invalid format in .pc files
+%{__sed} -i -e '/^VERSION=/ { s/ \(Dr[^ ]*\) (git commit: %s)/\1/; s/ % .*// }' wscript
 
-# avoid invalid version in .pc files
-%{__sed} -i -e '/^XMMS_VERSION/ s/ \(Dr[^ ]*\) (git commit: %s%s)/\1/; s/ % .*//;' SConstruct
-
-iconv -f iso-8859-1 -t utf8 doc/xmms2.1 -o doc/xmms2.1.utf8
-%{__mv} doc/xmms2.1.utf8 doc/xmms2.1
+# recode to UTF-8
+for f in \
+	src/clients/cli/xmms2.1 \
+	src/clients/et/xmms2-et.1 \
+	src/clients/launcher/xmms2-launcher.1 \
+	src/clients/mdns/avahi/xmms2-mdns-avahi.1 \
+	src/xmms/xmms2d.1
+do
+	iconv -f iso-8859-1 -t utf8 "$f" -o "${f}.utf8"
+	%{__mv} "${f}.utf8" "$f"
+done
 
 %build
-scons \
-	CC="%{__cc}" \
-	CXX="%{__cxx}" \
-	CCFLAGS="%{rpmcflags} %{rpmcppflags} $(pkg-config --cflags smbclient)"	\
-	PREFIX=%{_prefix} \
-	LIBDIR=%{_libdir} \
-	MANDIR=%{_mandir} \
-	PKGCONFIGDIR=%{_pkgconfigdir} \
-	SHAREDIR=%{_datadir}/xmms2
+CC="%{__cc}" \
+CXX="%{__cxx}" \
+CCFLAGS="%{rpmcflags} %{rpmcppflags} $(pkg-config --cflags smbclient)" \
+CXXFLAGS="%{rpmcxxflags} %{rpmcppflags} $(pkg-config --cflags smbclient)" \
+LDFLAGS="%{rpmldflags}" \
+./waf configure -v \
+	--prefix=%{_prefix} \
+	--libdir=%{_libdir} \
+	--with-mandir=%{_mandir} \
+	--without-optionals=python
+
+./waf build -v
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-scons install \
-	--install-sandbox $RPM_BUILD_ROOT
+./waf install \
+	--destdir=$RPM_BUILD_ROOT
+
+chmod 755 $RPM_BUILD_ROOT%{_libdir}/lib*.so.*.*
+chmod 755 $RPM_BUILD_ROOT%{_libdir}/xmms2/lib*.so
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+
+%post	-p /sbin/ldconfig
+%postun	-p /sbin/ldconfig
+
+%post	client-lib-ecore -p /sbin/ldconfig
+%postun	client-lib-ecore -p /sbin/ldconfig
+
+%post	client-lib-glib -p /sbin/ldconfig
+%postun	client-lib-glib -p /sbin/ldconfig
 
 %files
 %defattr(644,root,root,755)
 %doc AUTHORS COPYING README TODO
 %attr(755,root,root) %{_bindir}/xmms2-launcher
 %attr(755,root,root) %{_bindir}/xmms2d
-%attr(755,root,root) %{_libdir}/libxmmsclient.so.0
+%attr(755,root,root) %{_libdir}/libxmmsclient.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libxmmsclient.so.2
 %dir %{_libdir}/%{name}
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_asx.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_cue.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_diskwrite.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_equalizer.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_file.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_icymetaint.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_id3v2.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_m3u.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_mp4.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_null.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_nulstripper.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_replaygain.so
-# disabled since 0.2DrEvil
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_xml.so
+# XXX: requires libofa, but which kind of plugin is it? (fingerprint)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_ofa.so
+# XXX: input-rss? (requires libxml2)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_rss.so
+# XXX: requires libxml2, playlist reader
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_xspf.so
+# disabled since 0.2DrEvil ("broken=True")
 #%attr(755,root,root) %{_libdir}/%{name}/libxmms_html.so
-#%attr(755,root,root) %{_libdir}/%{name}/libxmms_m3u.so
-#%attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
 %{_datadir}/%{name}
 %{_mandir}/man1/xmms2-launcher.1*
 %{_mandir}/man1/xmms2d.1*
@@ -539,14 +595,17 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man1/xmms2-et.1*
 %{_mandir}/man1/xmms2-mdns-avahi.1*
 
+%if %{with sdl}
 %files client-sdlvis
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_bindir}/sdl-vis
+%endif
 
 %if %{with efl}
 %files client-lib-ecore
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libxmmsclient-ecore.so.0
+%attr(755,root,root) %{_libdir}/libxmmsclient-ecore.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libxmmsclient-ecore.so.1
 
 %if %{with ruby}
 %files client-lib-ecore-ruby
@@ -557,8 +616,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %files client-lib-glib
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libxmmsclient-glib.so.0
-%attr(755,root,root) %{_libdir}/libxmmsclient++-glib.so.0
+%attr(755,root,root) %{_libdir}/libxmmsclient-glib.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libxmmsclient-glib.so.1
+%attr(755,root,root) %{_libdir}/libxmmsclient++-glib.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libxmmsclient++-glib.so.1
 
 %if %{with ruby}
 %files client-lib-glib-ruby
@@ -573,6 +634,15 @@ rm -rf $RPM_BUILD_ROOT
 %{_javadir}/xmms2java.jar
 %endif
 
+%if %{with perl}
+%files client-lib-perl
+%defattr(644,root,root,755)
+%{perl_vendorarch}/Audio/XMMSClient.pm
+%{perl_vendorarch}/Audio/XMMSClient
+%dir %{perl_vendorarch}/auto/Audio/XMMSClient
+%attr(755,root,root) %{perl_vendorarch}/auto/Audio/XMMSClient/XMMSClient.so
+%endif
+
 %if %{with python}
 %files client-lib-python
 %defattr(644,root,root,755)
@@ -582,7 +652,9 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with ruby}
 %files client-lib-ruby
 %defattr(644,root,root,755)
-%attr(755,root,root) %{ruby_vendorarchdir}/xmmsclient.so
+%attr(755,root,root) %{ruby_vendorarchdir}/xmmsclient_ext.so
+%{ruby_vendorlibdir}/xmmsclient.rb
+%{ruby_vendorlibdir}/xmmsclient
 %endif
 
 ### effect
@@ -591,9 +663,18 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_vocoder.so
 
 ### input
+%files input-cd
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_cdda.so
+
 %files input-faad
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_faad.so
+
+%files input-ffmpeg
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_avcodec.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_avformat.so
 
 %if %{with flac}
 %files input-flac
@@ -626,15 +707,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %files input-vorbis
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_vorbisfile.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_vorbis.so
 
 %files input-wav
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_wave.so
-
-%files input-wma
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_wma.so
 
 ### output
 %files output-alsa
@@ -659,7 +736,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files transport-curl
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_curl_http.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_curl.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_lastfm.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_lastfmeta.so
 
@@ -677,7 +754,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files transport-samba
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_smb.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_samba.so
 
 %files devel
 %defattr(644,root,root,755)
@@ -685,12 +762,11 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/libxmmsclient-glib.so
 %attr(755,root,root) %{_libdir}/libxmmsclient++-glib.so
 %{_includedir}/xmms2
-%{_libdir}/libxmmsclient.a
-%{_libdir}/libxmmsclient-glib.a
-%{_libdir}/libxmmsclient++-glib.a
 %{_pkgconfigdir}/xmms2-client.pc
-%{_pkgconfigdir}/xmms2-client-cpp.pc
+# requires old boost.signal
+#%{_pkgconfigdir}/xmms2-client-cpp.pc
 %{_pkgconfigdir}/xmms2-client-cpp-glib.pc
-%{_pkgconfigdir}/xmms2-client-ecore.pc
+# disabled in 0.2DrJekyll
+#%{_pkgconfigdir}/xmms2-client-ecore.pc
 %{_pkgconfigdir}/xmms2-client-glib.pc
 %{_pkgconfigdir}/xmms2-plugin.pc

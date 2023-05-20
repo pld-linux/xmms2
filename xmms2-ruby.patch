@@ -1,72 +1,36 @@
---- xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.orig	2023-05-10 22:10:51.425835301 +0200
-+++ xmms2-0.2DrDolittle/src/clients/lib/ruby/Library	2023-05-10 22:34:00.468310213 +0200
-@@ -17,16 +17,16 @@ def config(env):
+--- xmms2-0.2DrJekyll/src/clients/lib/ruby/wscript.orig	2007-05-20 17:55:40.000000000 +0200
++++ xmms2-0.2DrJekyll/src/clients/lib/ruby/wscript	2023-05-14 19:24:00.501126640 +0200
+@@ -53,23 +53,23 @@ def configure(conf):
+         return False
+     conf.check_message('ruby version', '> 1.8', True, version)
  
- 		print(version)
+-    ruby_h = os.popen(ruby + " -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").read().strip()
++    ruby_h = os.popen(ruby + " -rrbconfig -e 'puts File.exist?(RbConfig::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").read().strip()
+     if ruby_h != 'true':
+         conf.check_message('ruby', 'header file', False)
+         return False
+     conf.check_message('ruby', 'header file', True)
  
--		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
-+		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(RbConfig::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").strip()
- 		if got_ruby_h != "true" :
- 			raise ConfigError("bad")
+-    dir = os.popen(ruby + " -rrbconfig -e 'puts \"%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'").read().strip()
++    dir = os.popen(ruby + " -rrbconfig -e 'puts \"%s\" % [].fill(RbConfig::CONFIG[\"rubyhdrdir\"], 0..1)'").read().strip()
+     conf.env["CCFLAGS_ruby"] = '-I%s' % dir
+     conf.env["LINKFLAGS_ruby"] = '-L%s' % dir
  
--		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
-+		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(RbConfig::CONFIG[\"rubyhdrdir\"], 0..1)'"
- 		env.configcmd(cmd)
- 		if "RUBYARCHDIR" in env:
- 			env.librarypath = env["RUBYARCHDIR"]
- 		else:
--			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
-+			cmd = "ruby -rrbconfig -e 'print RbConfig::CONFIG[\"vendorarchdir\"]'"
- 			env.librarypath = os.popen(cmd).read().strip()
+     if not Params.g_options.rubyarchdir:
+-        conf.env["ARCHDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'").read().strip()
++        conf.env["ARCHDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"vendorarchdir\"]'").read().strip()
+     else:
+         conf.env["ARCHDIR_ruby"] = Params.g_options.rubyarchdir
  
- 		env.Prepend(LIBPATH="src/clients/lib/xmmsclient")
---- xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.ecore.orig	2023-05-10 22:10:51.429168616 +0200
-+++ xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.ecore	2023-05-10 22:34:47.804720436 +0200
-@@ -23,16 +23,16 @@ def config(env):
+     if not Params.g_options.rubylibdir:
+-        conf.env["LIBDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"sitelibdir\"]'").read().strip()
++        conf.env["LIBDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"vendorlibdir\"]'").read().strip()
+     else:
+         conf.env["LIBDIR_ruby"] = Params.g_options.rubylibdir
  
- 		print(version)
- 
--		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
-+		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(RbConfig::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").strip()
- 		if got_ruby_h != "true" :
- 			raise ConfigError("")
- 
--		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
-+		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(RbConfig::CONFIG[\"rubyhdrdir\"], 0..1)'"
- 		env.configcmd(cmd)
- 		if "RUBYARCHDIR" in env:
- 			env.librarypath = env["RUBYARCHDIR"]
- 		else:
--			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
-+			cmd = "ruby -rrbconfig -e 'print RbConfig::CONFIG[\"vendorarchdir\"]'"
- 			env.librarypath = os.popen(cmd).read().strip()
- 
- 		env.Prepend(LIBPATH="src/clients/lib/xmmsclient")
---- xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.glib.orig	2023-05-10 22:10:51.429168616 +0200
-+++ xmms2-0.2DrDolittle/src/clients/lib/ruby/Library.glib	2023-05-10 22:35:11.117927471 +0200
-@@ -17,16 +17,16 @@ def config(env):
- 
- 		print(version)
- 
--		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").strip()
-+		got_ruby_h = env.run("ruby -rrbconfig -e 'puts File.exist?(RbConfig::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").strip()
- 		if got_ruby_h != "true" :
- 			raise ConfigError("bad")
- 
--		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'"
-+		cmd = "ruby -rrbconfig -e 'puts \"-I%s -L%s\" % [].fill(RbConfig::CONFIG[\"rubyhdrdir\"], 0..1)'"
- 		env.configcmd(cmd)
- 		if "RUBYARCHDIR" in env:
- 			env.librarypath = env["RUBYARCHDIR"]
- 		else:
--			cmd = "ruby -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'"
-+			cmd = "ruby -rrbconfig -e 'print RbConfig::CONFIG[\"vendorarchdir\"]'"
- 			env.librarypath = os.popen(cmd).read().strip()
- 
- 		env.pkgconfig("glib-2.0")
---- xmms2-0.2DrGonzo/src/clients/lib/ruby/rb_xmmsclient.c.orig	2006-09-26 15:50:20.000000000 +0200
-+++ xmms2-0.2DrGonzo/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-13 20:16:33.032116884 +0200
-@@ -78,8 +78,8 @@
+--- xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_xmmsclient.c.orig	2023-05-14 19:24:29.670968613 +0200
++++ xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-14 19:29:16.606080819 +0200
+@@ -73,8 +73,8 @@
  	StringValue (arg1); \
  \
  	res = xmmsc_##name (xmms->real, \
@@ -76,34 +40,21 @@
 +	                    RSTRING_LEN (arg1)); \
  	METHOD_HANDLER_FOOTER
  
- static VALUE eClientError, eDisconnectedError;
-@@ -784,7 +784,7 @@ c_playlist_add (VALUE self, VALUE arg)
+ static VALUE cPlaylist;
+@@ -1371,10 +1371,10 @@ parse_string_array (VALUE value)
+ 	if (!NIL_P (rb_check_array_type (value))) {
+ 		struct RArray *ary = RARRAY (value);
  
- 	if (!NIL_P (rb_check_string_type (arg)))
- 		is_str = true;
--	else if (!rb_obj_is_kind_of (arg, rb_cFixnum)) {
-+	else if (!rb_obj_is_kind_of (arg, rb_cInteger)) {
- 		rb_raise (eClientError, "unsupported argument");
- 		return Qnil;
- 	}
-@@ -817,7 +817,7 @@ c_playlist_insert (VALUE self, VALUE pos
+-		ret = malloc (sizeof (char *) * (ary->len + 1));
++		ret = malloc (sizeof (char *) * (RARRAY_LEN(ary) + 1));
  
- 	if (!NIL_P (rb_check_string_type (arg)))
- 		is_str = true;
--	else if (!rb_obj_is_kind_of (arg, rb_cFixnum)) {
-+	else if (!rb_obj_is_kind_of (arg, rb_cInteger)) {
- 		rb_raise (eClientError, "unsupported argument");
- 		return Qnil;
- 	}
-@@ -999,7 +999,7 @@ c_medialib_entry_property_set (int argc,
+-		for (i = 0; i < ary->len; i++)
+-			ret[i] = StringValuePtr (ary->ptr[i]);
++		for (i = 0; i < RARRAY_LEN(ary); i++)
++			ret[i] = StringValuePtr (RARRAY_PTR(ary)[i]);
  
- 	if (!NIL_P (rb_check_string_type (value)))
- 		is_str = true;
--	else if (!rb_obj_is_kind_of (value, rb_cFixnum)) {
-+	else if (!rb_obj_is_kind_of (value, rb_cInteger)) {
- 		rb_raise (eClientError, "unsupported argument");
- 		return Qnil;
- 	}
+ 		ret[i] = NULL;
+ 	} else {
 --- xmms2-0.2DrGonzo/src/clients/lib/ruby/rb_result.c.orig	2006-09-26 15:50:20.000000000 +0200
 +++ xmms2-0.2DrGonzo/src/clients/lib/ruby/rb_result.c	2023-05-13 18:40:37.719962752 +0200
 @@ -417,6 +417,7 @@ c_propdict_init (VALUE self, VALUE resul
@@ -132,3 +83,49 @@
  
  	rb_define_method (cPropDict, "[]", c_propdict_aref, 1);
  	rb_define_method (cPropDict, "has_key?", c_propdict_has_key, 1);
+--- xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_playlist.c.orig	2007-05-20 17:55:40.000000000 +0200
++++ xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_playlist.c	2023-05-18 20:59:44.461066374 +0200
+@@ -301,10 +301,10 @@ c_sort (VALUE self, VALUE props)
+ 	if (!NIL_P (props = rb_check_array_type (props))) {
+ 		ary = RARRAY (props);
+ 
+-		cprops = malloc (sizeof (char *) * (ary->len + 1));
++		cprops = malloc (sizeof (char *) * (RARRAY_LEN(ary) + 1));
+ 
+-		for (i = 0; i < ary->len; i++)
+-			cprops[i] = StringValuePtr (ary->ptr[i]);
++		for (i = 0; i < RARRAY_LEN(ary); i++)
++			cprops[i] = StringValuePtr (RARRAY_PTR(ary)[i]);
+ 
+ 		cprops[i] = NULL;
+ 	} else if (!NIL_P (rb_check_string_type (props))) {
+--- xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_collection.c.orig	2007-05-20 17:55:40.000000000 +0200
++++ xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_collection.c	2023-05-18 21:13:17.603327871 +0200
+@@ -220,10 +220,10 @@ c_coll_idlist_set (VALUE self, VALUE ids
+ 	COLL_METHOD_HANDLER_HEADER
+ 
+ 	rb_ary = RARRAY (ids);
+-	ary = malloc (sizeof (unsigned int *) * (rb_ary->len + 1));
++	ary = malloc (sizeof (unsigned int *) * (RARRAY_LEN(rb_ary) + 1));
+ 
+-	for (i = 0; i < rb_ary->len; i++)
+-		ary[i] = NUM2UINT (rb_ary->ptr[i]);
++	for (i = 0; i < RARRAY_LEN(rb_ary); i++)
++		ary[i] = NUM2UINT (RARRAY_PTR(rb_ary)[i]);
+ 
+ 	ary[i] = 0;
+ 
+@@ -263,10 +263,10 @@ attrs_inspect_cb (VALUE args, VALUE s)
+ {
+ 	VALUE key, value;
+ 
+-	key = RARRAY (args)->ptr[0];
+-	value = RARRAY (args)->ptr[1];
++	key = RARRAY_PTR(args)[0];
++	value = RARRAY_PTR(args)[1];
+ 
+-	if (RSTRING (s)->len > 1)
++	if (RSTRING_LEN (s) > 1)
+ 		rb_str_buf_cat2 (s, ", ");
+ 
+ 	rb_str_buf_append (s, rb_inspect (key));
