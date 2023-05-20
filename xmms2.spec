@@ -12,14 +12,13 @@
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.2DrJekyll
+Version:	0.4DrKosmos
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	https://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	768de76a98b6a9766cec157ff0a12543
+# Source0-md5:	f363857a77606a2d7d14603ab375f454
 Patch0:		%{name}-tabs.patch
-Patch1:		%{name}-perl.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-ffmpeg.patch
 Patch5:		%{name}-ruby.patch
@@ -62,6 +61,7 @@ BuildRequires:	libstdc++-devel
 BuildRequires:	libvorbis-devel
 BuildRequires:	libxml2-devel >= 2.0
 BuildRequires:	pkgconfig
+BuildRequires:	pulseaudio-devel
 %if %{with python}
 BuildRequires:	python-Pyrex >= 0.9.4.2
 BuildRequires:	python-devel >= 2.3
@@ -414,6 +414,18 @@ This package enables OSS output for xmms2.
 %description output-oss -l pl.UTF-8
 Ten pakiet udostępnia wyjście OSS dla xmms2.
 
+%package output-pulse
+Summary:	PulseAudio output
+Summary(pl.UTF-8):	Wyjście PulseAudio
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description output-pulse
+This package enables PulseAudio output for xmms2.
+
+%description output-pulse -l pl.UTF-8
+Ten pakiet udostępnia wyjście PulseAudio dla xmms2.
+
 %package transport-curl
 Summary:	HTTP curl transport
 Summary(pl.UTF-8):	Transport HTTP poprzez curl
@@ -491,7 +503,6 @@ xmms2.
 %prep
 %setup -q
 %patch0 -p1
-%patch1 -p1
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
@@ -516,13 +527,14 @@ done
 %build
 CC="%{__cc}" \
 CXX="%{__cxx}" \
-CCFLAGS="%{rpmcflags} %{rpmcppflags} $(pkg-config --cflags smbclient)" \
+CFLAGS="%{rpmcflags} %{rpmcppflags} $(pkg-config --cflags smbclient)" \
 CXXFLAGS="%{rpmcxxflags} %{rpmcppflags} $(pkg-config --cflags smbclient)" \
 LDFLAGS="%{rpmldflags}" \
 ./waf configure -v \
 	--prefix=%{_prefix} \
-	--libdir=%{_libdir} \
+	--with-libdir=%{_libdir} \
 	--with-mandir=%{_mandir} \
+	--with-perl-archdir=%{perl_vendorarch} \
 	--without-optionals=python
 
 ./waf build -v
@@ -554,8 +566,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/xmms2-launcher
 %attr(755,root,root) %{_bindir}/xmms2d
 %attr(755,root,root) %{_libdir}/libxmmsclient.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libxmmsclient.so.2
+%attr(755,root,root) %ghost %{_libdir}/libxmmsclient.so.3
 %dir %{_libdir}/%{name}
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_asf.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_asx.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_cue.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_diskwrite.so
@@ -565,6 +578,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_id3v2.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_m3u.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_mp4.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_normalize.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_null.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_nulstripper.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
@@ -579,6 +593,8 @@ rm -rf $RPM_BUILD_ROOT
 # disabled since 0.2DrEvil ("broken=True")
 #%attr(755,root,root) %{_libdir}/%{name}/libxmms_html.so
 %{_datadir}/%{name}
+%{_pixmapsdir}/xmms2*.png
+%{_pixmapsdir}/xmms2*.svg
 %{_mandir}/man1/xmms2-launcher.1*
 %{_mandir}/man1/xmms2d.1*
 
@@ -734,6 +750,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_oss.so
 
+%files output-pulse
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_pulse.so
+
 %files transport-curl
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_curl.so
@@ -759,6 +779,9 @@ rm -rf $RPM_BUILD_ROOT
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libxmmsclient.so
+%if %{with efl}
+%attr(755,root,root) %{_libdir}/libxmmsclient-ecore.so
+%endif
 %attr(755,root,root) %{_libdir}/libxmmsclient-glib.so
 %attr(755,root,root) %{_libdir}/libxmmsclient++-glib.so
 %{_includedir}/xmms2

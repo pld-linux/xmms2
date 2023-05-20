@@ -1,10 +1,10 @@
---- xmms2-0.2DrJekyll/src/clients/mdns/dns_sd/wscript.orig	2007-05-20 17:55:40.000000000 +0200
-+++ xmms2-0.2DrJekyll/src/clients/mdns/dns_sd/wscript	2023-05-14 20:16:34.294041077 +0200
-@@ -15,7 +15,6 @@ def build(bld):
+--- xmms2-0.4DrKosmos/src/clients/mdns/dns_sd/wscript.orig	2023-05-20 14:56:24.889693533 +0200
++++ xmms2-0.4DrKosmos/src/clients/mdns/dns_sd/wscript	2023-05-20 14:59:16.145432428 +0200
+@@ -17,7 +17,6 @@ def build(bld):
    obj = bld.create_obj('subst')
    obj.source = 'xmms2-mdns-launcher.sh.in'
    obj.dict = {'PRG_PATH' : os.path.join(bld.env_of_name('default')['PREFIX'], 'bin')}
 -  Common.install_files('SCRIPTDIR', None, 'xmms2-mdns-launcher.sh', chmod=0755)
  
  def configure(conf):
-   if not conf.check_header('dns_sd.h'):
+   conf.env['explicit_dnssd'] = True

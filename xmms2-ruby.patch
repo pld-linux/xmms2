@@ -1,6 +1,6 @@
---- xmms2-0.2DrJekyll/src/clients/lib/ruby/wscript.orig	2007-05-20 17:55:40.000000000 +0200
-+++ xmms2-0.2DrJekyll/src/clients/lib/ruby/wscript	2023-05-14 19:24:00.501126640 +0200
-@@ -53,23 +53,23 @@ def configure(conf):
+--- xmms2-0.4DrKosmos/src/clients/lib/ruby/wscript.orig	2023-05-20 14:47:32.535910875 +0200
++++ xmms2-0.4DrKosmos/src/clients/lib/ruby/wscript	2023-05-20 14:55:29.619992955 +0200
+@@ -51,17 +51,17 @@ def configure(conf):
          return False
      conf.check_message('ruby version', '> 1.8', True, version)
  
@@ -13,8 +13,28 @@
  
 -    dir = os.popen(ruby + " -rrbconfig -e 'puts \"%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'").read().strip()
 +    dir = os.popen(ruby + " -rrbconfig -e 'puts \"%s\" % [].fill(RbConfig::CONFIG[\"rubyhdrdir\"], 0..1)'").read().strip()
-     conf.env["CCFLAGS_ruby"] = '-I%s' % dir
+     conf.env["CPPPATH_ruby"] = dir
      conf.env["LINKFLAGS_ruby"] = '-L%s' % dir
+ 
+-    ldflags = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"LDSHARED\"]'").read().strip()
++    ldflags = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"LDSHARED\"]'").read().strip()
+     # ok this is really stupid, but the command and flags are combined.
+     # so we try to find the first argument...
+     flags = ldflags.split()
+@@ -69,26 +69,26 @@ def configure(conf):
+         flags = flags[1:]
+     conf.env["LINKFLAGS_ruby"] += " "+" ".join(flags)
+ 
+-    ldflags = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"LIBS\"]'").read().strip()
++    ldflags = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"LIBS\"]'").read().strip()
+     conf.env["LINKFLAGS_ruby"] += " "+ldflags
+-    ldflags = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"LIBRUBYARG_SHARED\"]'").read().strip()
++    ldflags = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"LIBRUBYARG_SHARED\"]'").read().strip()
+     conf.env["LINKFLAGS_ruby"] += " "+ldflags
+ 
+-    cflags = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"CCDLFLAGS\"]'").read().strip()
++    cflags = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"CCDLFLAGS\"]'").read().strip()
+     conf.env["CCFLAGS_ruby"] = cflags
  
      if not Params.g_options.rubyarchdir:
 -        conf.env["ARCHDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'").read().strip()
@@ -27,6 +47,12 @@
 +        conf.env["LIBDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"vendorlibdir\"]'").read().strip()
      else:
          conf.env["LIBDIR_ruby"] = Params.g_options.rubylibdir
+ 
+     conf.env["rubyext_PREFIX"] = ''
+-    conf.env["rubyext_SUFFIX"] = '.' + os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"DLEXT\"]'").read().strip()
++    conf.env["rubyext_SUFFIX"] = '.' + os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"DLEXT\"]'").read().strip()
+     conf.env["rubyext_USELIB"] = "ruby"
+     conf.env["rubyext_obj_ext"] = conf.env["shlib_obj_ext"]
  
 --- xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_xmmsclient.c.orig	2023-05-14 19:24:29.670968613 +0200
 +++ xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-14 19:29:16.606080819 +0200

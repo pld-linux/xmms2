@@ -9,60 +9,16 @@
      test.headers = ['math.h']
      test.libs = ['m']
      test.mandatory = 1
---- xmms2-0.2DrJekyll/wscript.orig	2007-05-20 17:55:40.000000000 +0200
-+++ xmms2-0.2DrJekyll/wscript	2023-05-19 16:34:46.732465581 +0200
-@@ -212,6 +212,11 @@ def configure(conf):
-         conf.env["BUILD_XMMS2D"] = True
-         subdirs.insert(0, "src/xmms")
- 
-+    if Params.g_options.libdir:
-+        conf.env["LIBDIR"] = Params.g_options.libdir
-+    else:
-+        conf.env["LIBDIR"] = os.path.join(conf.env["PREFIX"], "lib")
-+
-     if Params.g_options.manualdir:
-         conf.env["MANDIR"] = Params.g_options.manualdir
-     else:
-@@ -227,8 +232,6 @@ def configure(conf):
-     conf.check_tool('man', tooldir=os.path.abspath('waftools'))
+--- xmms2-0.4DrKosmos/wscript.orig	2007-11-15 19:25:07.000000000 +0100
++++ xmms2-0.4DrKosmos/wscript	2023-05-20 15:03:03.017536689 +0200
+@@ -244,8 +244,6 @@ def configure(conf):
+         Params.g_platform = Params.g_options.target_platform
  
      conf.env["VERSION"] = VERSION
 -    conf.env["CCFLAGS"] = Utils.to_list(conf.env["CCFLAGS"]) + ['-g', '-O0']
 -    conf.env["CXXFLAGS"] = Utils.to_list(conf.env["CXXFLAGS"]) + ['-g', '-O0']
      conf.env['XMMS_PKGCONF_FILES'] = []
      conf.env['XMMS_OUTPUT_PLUGINS'] = [(-1, "NONE")]
- 
-@@ -234,11 +239,10 @@ def configure(conf):
-     conf.env['CXXDEFINES'] += ["XMMS_VERSION=\"\\\"%s\\\"\"" % VERSION]
- 
-     if Params.g_options.config_prefix:
--        conf.env["LIBPATH"] += [os.path.join(Params.g_options.config_prefix, "lib")]
-         include = [os.path.join(Params.g_options.config_prefix, "include")]
-         conf.env['CPPPATH'] += include
- 
--    conf.env["LINKFLAGS_xlibs"] += ['-install_name %s%s%s' % (os.path.join(conf.env["PREFIX"], 'lib', conf.env["shlib_PREFIX"]), '%s', conf.env["shlib_SUFFIX"])]
-+    conf.env["LINKFLAGS_xlibs"] += ['-install_name %s%s%s' % (os.path.join(conf.env["LIBDIR"], conf.env["shlib_PREFIX"]), '%s', conf.env["shlib_SUFFIX"])]
- 
-     # Our static libraries may link to dynamic libraries
-     conf.env["staticlib_CCFLAGS"] += ['-fPIC', '-DPIC']
-@@ -303,6 +308,7 @@ def set_options(opt):
-     opt.add_option('--conf-prefix', type='string', dest='config_prefix')
-     opt.add_option('--without-xmms2d', type='int', dest='without_xmms2d')
-     opt.add_option('--with-mandir', type='string', dest='manualdir')
-+    opt.add_option('--libdir', type='string', dest='libdir')
- 
-     for o in optional_subdirs + subdirs:
-         opt.sub_options(o)
---- xmms2-0.2DrJekyll/wafadmin/Tools/gcc.py.orig	2007-05-20 17:55:40.000000000 +0200
-+++ xmms2-0.2DrJekyll/wafadmin/Tools/gcc.py	2023-05-19 16:58:09.314656440 +0200
-@@ -81,7 +81,7 @@ def detect(conf):
- 		if not dest: dest=orig
- 		try: conf.env[dest] = ron[orig]
- 		except KeyError: pass
--	addflags('CCFLAGS', 'CFLAGS')
-+	addflags('CCFLAGS')
- 	addflags('CPPFLAGS')
- 	addflags('LINKFLAGS')
  
 --- xmms2-0.2DrJekyll/waftools/pkgconfig.py.orig	2007-05-20 17:55:40.000000000 +0200
 +++ xmms2-0.2DrJekyll/waftools/pkgconfig.py	2023-05-19 17:20:32.982353210 +0200
@@ -75,11 +31,11 @@
              val["INCLUDEDIR"] = os.path.join("${prefix}", "include", "xmms2")
              val["VERSION"] = self.version
  
---- xmms2-0.2DrJekyll/src/include/xmms/wscript.orig	2007-05-20 17:55:40.000000000 +0200
-+++ xmms2-0.2DrJekyll/src/include/xmms/wscript	2023-05-20 07:52:15.284232542 +0200
-@@ -19,8 +19,8 @@ def configure(conf):
-             defs["XMMS_OS_%s" % platform.upper()] = 1
-             break
+--- xmms2-0.4DrKosmos/src/include/xmms/wscript.orig	2023-05-20 18:07:08.337699055 +0200
++++ xmms2-0.4DrKosmos/src/include/xmms/wscript	2023-05-20 19:51:04.783913328 +0200
+@@ -12,8 +12,8 @@ def configure(conf):
+ 
+     defs = {}
  
 -    defs['PKGLIBDIR'] = os.path.join(conf.env['PREFIX'],
 -                                     'lib', 'xmms2')
@@ -88,12 +44,12 @@
      defs['BINDIR'] = os.path.join(conf.env['PREFIX'],
                                    'bin')
      defs['SHAREDDIR'] = os.path.join(conf.env['PREFIX'],
-@@ -45,7 +45,7 @@ def configure(conf):
+@@ -38,7 +38,7 @@ def configure(conf):
  
      conf.env['XMMS_DEFS'] = defs
      conf.env['PLUGINDIR'] = defs['PKGLIBDIR']
 -    conf.env['PKGCONFIGDIR'] = os.path.join(conf.env["PREFIX"], "lib", "pkgconfig")
 +    conf.env['PKGCONFIGDIR'] = os.path.join(conf.env["LIBDIR"], "pkgconfig")
  
-     for i in defs:
-         conf.add_define(i, defs[i])
+     # The plugin path in Windows should be relative, not absolute
+     if Params.g_platform == 'win32':
