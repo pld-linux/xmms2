@@ -1,27 +1,48 @@
---- xmms2-0.4DrKosmos/src/clients/lib/ruby/wscript.orig	2023-05-20 14:47:32.535910875 +0200
-+++ xmms2-0.4DrKosmos/src/clients/lib/ruby/wscript	2023-05-20 14:55:29.619992955 +0200
-@@ -51,17 +51,17 @@ def configure(conf):
-         return False
-     conf.check_message('ruby version', '> 1.8', True, version)
+--- xmms2-0.5DrLecter/src/clients/lib/ruby/wscript.orig	2023-05-21 14:20:34.466607748 +0200
++++ xmms2-0.5DrLecter/src/clients/lib/ruby/wscript	2023-05-21 14:57:59.467778866 +0200
+@@ -56,25 +56,25 @@ def configure(conf):
+     conf.check_message('ruby version', '> 1.8', True, version_str)
  
--    ruby_h = os.popen(ruby + " -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").read().strip()
-+    ruby_h = os.popen(ruby + " -rrbconfig -e 'puts File.exist?(RbConfig::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").read().strip()
+     if version == [1, 8]: # Ruby 1.8
+-        ruby_h = os.popen(ruby + " -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"archdir\"] + \"/ruby.h\")'").read().strip()
++        ruby_h = os.popen(ruby + " -rrbconfig -e 'puts File.exist?(RbConfig::CONFIG[\"archdir\"] + \"/ruby.h\")'").read().strip()
+     else: # Ruby 1.9
+-        ruby_h = os.popen(ruby + " -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").read().strip()
++        ruby_h = os.popen(ruby + " -rrbconfig -e 'puts File.exist?(RbConfig::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").read().strip()
      if ruby_h != 'true':
          conf.check_message('ruby', 'header file', False)
          return False
      conf.check_message('ruby', 'header file', True)
  
 -    dir = os.popen(ruby + " -rrbconfig -e 'puts \"%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'").read().strip()
-+    dir = os.popen(ruby + " -rrbconfig -e 'puts \"%s\" % [].fill(RbConfig::CONFIG[\"rubyhdrdir\"], 0..1)'").read().strip()
-     conf.env["CPPPATH_ruby"] = dir
++    dir = os.popen(ruby + " -rrbconfig -e 'puts \"%s\" % [].fill(RbConfig::CONFIG[\"archdir\"], 0..1)'").read().strip()
+     conf.env["CPPPATH_ruby"] = [dir]
      conf.env["LINKFLAGS_ruby"] = '-L%s' % dir
+ 
+-    if version == [1, 9]: # Ruby 1.9
+-        hdir = os.popen(ruby + " -rrbconfig -e 'puts Config::CONFIG[\"rubyhdrdir\"]'").read().strip()
++    if version >= [1, 9]: # Ruby 1.9
++        hdir = os.popen(ruby + " -rrbconfig -e 'puts RbConfig::CONFIG[\"rubyhdrdir\"]'").read().strip()
+         conf.env["CPPPATH_ruby"] += [hdir, os.path.join(hdir, "ruby")]
+-        hdir = os.popen(ruby + " -rrbconfig -e 'puts File.join(Config::CONFIG[\"rubyhdrdir\"], Config::CONFIG[\"arch\"])'").read().strip()
++        hdir = os.popen(ruby + " -rrbconfig -e 'puts File.join(RbConfig::CONFIG[\"rubyhdrdir\"], RbConfig::CONFIG[\"arch\"])'").read().strip()
+         conf.env["CPPPATH_ruby"] += [hdir]
+ 
+-    lib = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"RUBY_SO_NAME\"]'").read().strip()
++    lib = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"RUBY_SO_NAME\"]'").read().strip()
+ 
+     # Check for rb_protect_inspect for our inspect methods.
+     test = conf.create(enumerator='function')
+@@ -86,7 +86,7 @@ def configure(conf):
+     if test.run():
+         conf.env['CCDEFINES_ruby'] = ['HAVE_PROTECT_INSPECT']
  
 -    ldflags = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"LDSHARED\"]'").read().strip()
 +    ldflags = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"LDSHARED\"]'").read().strip()
      # ok this is really stupid, but the command and flags are combined.
      # so we try to find the first argument...
      flags = ldflags.split()
-@@ -69,26 +69,26 @@ def configure(conf):
+@@ -94,21 +94,21 @@ def configure(conf):
          flags = flags[1:]
      conf.env["LINKFLAGS_ruby"] += " "+" ".join(flags)
  
@@ -38,15 +59,18 @@
  
      if not Params.g_options.rubyarchdir:
 -        conf.env["ARCHDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'").read().strip()
-+        conf.env["ARCHDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"vendorarchdir\"]'").read().strip()
++        conf.env["ARCHDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"sitearchdir\"]'").read().strip()
      else:
          conf.env["ARCHDIR_ruby"] = Params.g_options.rubyarchdir
  
      if not Params.g_options.rubylibdir:
 -        conf.env["LIBDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"sitelibdir\"]'").read().strip()
-+        conf.env["LIBDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"vendorlibdir\"]'").read().strip()
++        conf.env["LIBDIR_ruby"] = os.popen(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"sitelibdir\"]'").read().strip()
      else:
          conf.env["LIBDIR_ruby"] = Params.g_options.rubylibdir
+ 
+@@ -123,7 +123,7 @@ def configure(conf):
+                 + 'ruby bindings to be installed to ' + conf.env['LIBDIR_ruby'])
  
      conf.env["rubyext_PREFIX"] = ''
 -    conf.env["rubyext_SUFFIX"] = '.' + os.popen(ruby + " -rrbconfig -e 'print Config::CONFIG[\"DLEXT\"]'").read().strip()
@@ -56,17 +80,6 @@
  
 --- xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_xmmsclient.c.orig	2023-05-14 19:24:29.670968613 +0200
 +++ xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-14 19:29:16.606080819 +0200
-@@ -73,8 +73,8 @@
- 	StringValue (arg1); \
- \
- 	res = xmmsc_##name (xmms->real, \
--	                    (unsigned char *) RSTRING (arg1)->ptr, \
--	                    RSTRING (arg1)->len); \
-+	                    (unsigned char *) RSTRING_PTR (arg1), \
-+	                    RSTRING_LEN (arg1)); \
- 	METHOD_HANDLER_FOOTER
- 
- static VALUE cPlaylist;
 @@ -1371,10 +1371,10 @@ parse_string_array (VALUE value)
  	if (!NIL_P (rb_check_array_type (value))) {
  		struct RArray *ary = RARRAY (value);
@@ -81,34 +94,6 @@
  
  		ret[i] = NULL;
  	} else {
---- xmms2-0.2DrGonzo/src/clients/lib/ruby/rb_result.c.orig	2006-09-26 15:50:20.000000000 +0200
-+++ xmms2-0.2DrGonzo/src/clients/lib/ruby/rb_result.c	2023-05-13 18:40:37.719962752 +0200
-@@ -417,6 +417,7 @@ c_propdict_init (VALUE self, VALUE resul
- 	return self;
- }
- 
-+#ifdef HAVE_RB_PROTECT_INSPECT
- static VALUE
- propdict_inspect_cb (VALUE args, VALUE s)
- {
-@@ -459,6 +460,7 @@ c_propdict_inspect (VALUE self)
- {
- 	return rb_protect_inspect (propdict_inspect, self, 0);
- }
-+#endif
- 
- static VALUE
- c_propdict_aref (VALUE self, VALUE key)
-@@ -629,7 +631,9 @@ Init_Result (VALUE mXmms)
- 	cPropDict = rb_define_class_under (mXmms, "PropDict", rb_cObject);
- 
- 	rb_define_method (cPropDict, "initialize", c_propdict_init, 1);
-+#ifdef HAVE_RB_PROTECT_INSPECT
- 	rb_define_method (cPropDict, "inspect", c_propdict_inspect, 0);
-+#endif
- 
- 	rb_define_method (cPropDict, "[]", c_propdict_aref, 1);
- 	rb_define_method (cPropDict, "has_key?", c_propdict_has_key, 1);
 --- xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_playlist.c.orig	2007-05-20 17:55:40.000000000 +0200
 +++ xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_playlist.c	2023-05-18 20:59:44.461066374 +0200
 @@ -301,10 +301,10 @@ c_sort (VALUE self, VALUE props)
@@ -125,9 +110,9 @@
  
  		cprops[i] = NULL;
  	} else if (!NIL_P (rb_check_string_type (props))) {
---- xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_collection.c.orig	2007-05-20 17:55:40.000000000 +0200
-+++ xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_collection.c	2023-05-18 21:13:17.603327871 +0200
-@@ -220,10 +220,10 @@ c_coll_idlist_set (VALUE self, VALUE ids
+--- xmms2-0.5DrLecter/src/clients/lib/ruby/rb_collection.c.orig	2008-06-15 19:31:38.000000000 +0200
++++ xmms2-0.5DrLecter/src/clients/lib/ruby/rb_collection.c	2023-05-21 15:05:06.452132360 +0200
+@@ -241,10 +241,10 @@ c_coll_idlist_set (VALUE self, VALUE ids
  	COLL_METHOD_HANDLER_HEADER
  
  	rb_ary = RARRAY (ids);
@@ -141,17 +126,14 @@
  
  	ary[i] = 0;
  
-@@ -263,10 +263,10 @@ attrs_inspect_cb (VALUE args, VALUE s)
+@@ -285,8 +285,8 @@ attrs_inspect_cb (VALUE args, VALUE s)
  {
  	VALUE key, value;
  
 -	key = RARRAY (args)->ptr[0];
 -	value = RARRAY (args)->ptr[1];
-+	key = RARRAY_PTR(args)[0];
-+	value = RARRAY_PTR(args)[1];
++	key = RARRAY_PTR (args)[0];
++	value = RARRAY_PTR (args)[1];
  
--	if (RSTRING (s)->len > 1)
-+	if (RSTRING_LEN (s) > 1)
+ 	if (RSTRING_LEN (s) > 1)
  		rb_str_buf_cat2 (s, ", ");
- 
- 	rb_str_buf_append (s, rb_inspect (key));

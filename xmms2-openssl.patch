@@ -1,0 +1,12 @@
+--- xmms2-0.5DrLecter/src/plugins/airplay/raop_client.c.orig	2008-06-15 19:31:38.000000000 +0200
++++ xmms2-0.5DrLecter/src/plugins/airplay/raop_client.c	2023-05-21 17:06:06.296135745 +0200
+@@ -137,8 +137,7 @@ raop_rsa_encrypt (guchar *text, gint len
+ 	static const guchar exp[] = {0x01, 0x00, 0x01};
+ 
+ 	rsa = RSA_new ();
+-	rsa->n = BN_bin2bn (mod, 256, NULL);
+-	rsa->e = BN_bin2bn (exp, 3, NULL);
++	RSA_set0_key(rsa, BN_bin2bn (mod, 256, NULL), BN_bin2bn (exp, 3, NULL), NULL);
+ 
+ 	size = RSA_public_encrypt (len, text, res, rsa, RSA_PKCS1_OAEP_PADDING);
+ 

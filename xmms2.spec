@@ -12,18 +12,21 @@
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.4DrKosmos
+Version:	0.5DrLecter
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	https://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	f363857a77606a2d7d14603ab375f454
+# Source0-md5:	9033ef15be9069ef43aeb4b6360a4d36
 Patch0:		%{name}-tabs.patch
+Patch1:		%{name}-openssl.patch
+Patch2:		%{name}-format.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-ffmpeg.patch
 Patch5:		%{name}-ruby.patch
 Patch6:		%{name}-mdns-launcher-conflict.patch
-Patch8:		%{name}-waf.patch
+Patch7:		%{name}-waf.patch
+Patch8:		%{name}-version.patch
 URL:		http://xmms2.xmms.se/
 %if %{with sdl}
 BuildRequires:	SDL-devel
@@ -41,7 +44,6 @@ BuildRequires:	fftw3-single-devel >= 3
 %{?with_flac:BuildRequires:	flac-devel >= 1.1.3}
 BuildRequires:	gamin-devel
 BuildRequires:	glib2-devel >= 1:2.6.0
-BuildRequires:	gnome-vfs2-devel >= 2.0
 BuildRequires:	jack-audio-connection-kit-devel
 %{?with_java:BuildRequires:	jdk}
 BuildRequires:	libao-devel
@@ -60,6 +62,7 @@ BuildRequires:	libsmbclient-devel
 BuildRequires:	libstdc++-devel
 BuildRequires:	libvorbis-devel
 BuildRequires:	libxml2-devel >= 2.0
+BuildRequires:	openssl-devel
 BuildRequires:	pkgconfig
 BuildRequires:	pulseaudio-devel
 %if %{with python}
@@ -71,7 +74,7 @@ BuildRequires:	rpmbuild(macros) >= 1.277
 %{?with_ruby:BuildRequires:	ruby-modules >= 1:1.8}
 BuildRequires:	scons >= 4
 BuildRequires:	sed >= 4.0
-#BuildRequires:	speex-devel
+BuildRequires:	speex-devel
 BuildRequires:	sqlite3-devel >= 3.2
 BuildRequires:	swig >= 1.3.25
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -450,17 +453,18 @@ This package enables DAAP transport for xmms2.
 %description transport-daap -l pl.UTF-8
 Ten pakiet umożliwia odbiór danych DAAP przez xmms2.
 
-%package transport-gnomevfs
-Summary:	GnomeVFS transport
-Summary(pl.UTF-8):	Transport GnomeVFS
+%package transport-gvfs
+Summary:	GVFS transport
+Summary(pl.UTF-8):	Transport GVFS
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
+Obsoletes:	xmms2-transport-gnomevfs < 0.5
 
-%description transport-gnomevfs
-This package contains a GnomeVFS transport for xmms2.
+%description transport-gvfs
+This package contains a GVFS transport for xmms2.
 
-%description transport-gnomevfs -l pl.UTF-8
-Ten pakiet zawiera transport GnomeVFS dla xmms2.
+%description transport-gvfs -l pl.UTF-8
+Ten pakiet zawiera transport GVFS dla xmms2.
 
 %package transport-mms
 Summary:	MMS transport
@@ -503,14 +507,17 @@ xmms2.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
+%patch2 -p1
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
 %patch6 -p1
+%patch7 -p1
 %patch8 -p1
 
 # sanitize version to avoid invalid format in .pc files
-%{__sed} -i -e '/^VERSION=/ { s/ \(Dr[^ ]*\) (git commit: %s)/\1/; s/ % .*// }' wscript
+%{__sed} -i -e '/^BASEVERSION=/ s/ \(Dr[^ ]*\)/\1/' wscript
 
 # recode to UTF-8
 for f in \
@@ -535,6 +542,8 @@ LDFLAGS="%{rpmldflags}" \
 	--with-libdir=%{_libdir} \
 	--with-mandir=%{_mandir} \
 	--with-perl-archdir=%{perl_vendorarch} \
+	--with-ruby-archdir=%{ruby_vendorarchdir} \
+	--with-ruby-libdir=%{ruby_vendorlibdir} \
 	--without-optionals=python
 
 ./waf build -v
@@ -566,7 +575,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/xmms2-launcher
 %attr(755,root,root) %{_bindir}/xmms2d
 %attr(755,root,root) %{_libdir}/libxmmsclient.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libxmmsclient.so.3
+%attr(755,root,root) %ghost %{_libdir}/libxmmsclient.so.4
 %dir %{_libdir}/%{name}
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_asf.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_asx.so
@@ -574,8 +583,10 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_diskwrite.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_equalizer.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_file.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_gme.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_icymetaint.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_id3v2.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_karaoke.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_m3u.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_mp4.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_normalize.so
@@ -597,6 +608,9 @@ rm -rf $RPM_BUILD_ROOT
 %{_pixmapsdir}/xmms2*.svg
 %{_mandir}/man1/xmms2-launcher.1*
 %{_mandir}/man1/xmms2d.1*
+
+# XXX: -output-airplay (R: openssl)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_airplay.so
 
 ### clients
 %files client-cli
@@ -690,7 +704,6 @@ rm -rf $RPM_BUILD_ROOT
 %files input-ffmpeg
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_avcodec.so
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_avformat.so
 
 %if %{with flac}
 %files input-flac
@@ -714,12 +727,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_sid.so
 
-%if 0
-# disabled in DR2.1
 %files input-speex
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_speex.so
-%endif
 
 %files input-vorbis
 %defattr(644,root,root,755)
@@ -764,9 +774,9 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_daap.so
 
-%files transport-gnomevfs
+%files transport-gvfs
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_gnomevfs.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_gvfs.so
 
 %files transport-mms
 %defattr(644,root,root,755)
@@ -779,9 +789,6 @@ rm -rf $RPM_BUILD_ROOT
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libxmmsclient.so
-%if %{with efl}
-%attr(755,root,root) %{_libdir}/libxmmsclient-ecore.so
-%endif
 %attr(755,root,root) %{_libdir}/libxmmsclient-glib.so
 %attr(755,root,root) %{_libdir}/libxmmsclient++-glib.so
 %{_includedir}/xmms2
@@ -789,7 +796,9 @@ rm -rf $RPM_BUILD_ROOT
 # requires old boost.signal
 #%{_pkgconfigdir}/xmms2-client-cpp.pc
 %{_pkgconfigdir}/xmms2-client-cpp-glib.pc
-# disabled in 0.2DrJekyll
-#%{_pkgconfigdir}/xmms2-client-ecore.pc
 %{_pkgconfigdir}/xmms2-client-glib.pc
 %{_pkgconfigdir}/xmms2-plugin.pc
+%if %{with efl}
+%{_pkgconfigdir}/xmms2-client-ecore.pc
+%attr(755,root,root) %{_libdir}/libxmmsclient-ecore.so
+%endif

@@ -1,0 +1,11 @@
+--- xmms2-0.5DrLecter/wscript.orig	2023-05-21 17:42:46.300883963 +0200
++++ xmms2-0.5DrLecter/wscript	2023-05-21 18:02:09.441249357 +0200
+@@ -259,7 +259,7 @@ def configure(conf):
+         if changed:
+             dirty="-dirty"
+         conf.check_message("uncommitted changes", "", bool(changed))
+-        conf.env["VERSION"] = BASEVERSION + " (git commit: %s%s)" % (nam, dirty)
++        conf.env["VERSION"] = BASEVERSION
+ 
+     conf.env['XMMS_PKGCONF_FILES'] = []
+     conf.env['XMMS_OUTPUT_PLUGINS'] = [(-1, "NONE")]
