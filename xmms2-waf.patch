@@ -1,17 +1,6 @@
---- xmms2-0.2DrJekyll/src/xmms/wscript.orig	2007-05-20 17:55:40.000000000 +0200
-+++ xmms2-0.2DrJekyll/src/xmms/wscript	2023-05-15 20:02:20.740596198 +0200
-@@ -70,7 +70,7 @@ def configure(conf):
- 
-     # Check for the sin function in the math lib
-     test = conf.create(enumerator='function')
--    test.function = 'sin'
-+    test.function = 'sinf'
-     test.headers = ['math.h']
-     test.libs = ['m']
-     test.mandatory = 1
---- xmms2-0.5DrLecter/wscript.orig	2023-05-21 15:07:01.128177773 +0200
-+++ xmms2-0.5DrLecter/wscript	2023-05-21 15:45:58.645514355 +0200
-@@ -261,8 +261,6 @@ def configure(conf):
+--- xmms2-0.6DrMattDestruction/wscript.orig	2009-04-21 19:51:11.000000000 +0200
++++ xmms2-0.6DrMattDestruction/wscript	2023-05-22 10:12:54.089044360 +0200
+@@ -278,8 +278,6 @@ def configure(conf):
          conf.check_message("uncommitted changes", "", bool(changed))
          conf.env["VERSION"] = BASEVERSION + " (git commit: %s%s)" % (nam, dirty)
  
@@ -20,26 +9,15 @@
      conf.env['XMMS_PKGCONF_FILES'] = []
      conf.env['XMMS_OUTPUT_PLUGINS'] = [(-1, "NONE")]
  
-@@ -282,7 +282,7 @@ def configure(conf):
-         conf.env['PKGCONFIGDIR'] = Params.g_options.pkgconfigdir
-         print conf.env['PKGCONFIGDIR']
+@@ -297,7 +295,7 @@ def configure(conf):
+         conf.env['PKGCONFIGDIR'] = Options.options.pkgconfigdir
+         print(conf.env['PKGCONFIGDIR'])
      else:
 -        conf.env['PKGCONFIGDIR'] = os.path.join(conf.env["PREFIX"], "lib", "pkgconfig")
 +        conf.env['PKGCONFIGDIR'] = os.path.join(conf.env["LIBDIR"], "pkgconfig")
  
-     if Params.g_options.config_prefix:
-         for dir in Params.g_options.config_prefix:
---- xmms2-0.5DrLecter/waftools/pkgconfig.py.orig	2023-05-21 15:46:27.778689861 +0200
-+++ xmms2-0.5DrLecter/waftools/pkgconfig.py	2023-05-21 16:20:48.307527018 +0200
-@@ -20,7 +20,7 @@ class pkgcobj(copyobj):
-             p = self.env["PREFIX"]
-             val["PREFIX"] = p
-             val["BINDIR"] = os.path.join("${prefix}", "bin")
--            val["LIBDIR"] = os.path.join("${prefix}", "lib")
-+            val["LIBDIR"] = self.env["LIBDIR"]
-             val["INCLUDEDIR"] = os.path.join("${prefix}", "include", "xmms2")
-             val["VERSION"] = self.env["VERSION"]
- 
+     if Options.options.config_prefix:
+         for dir in Options.options.config_prefix:
 --- xmms2-0.5DrLecter/src/include/xmms/wscript.orig	2023-05-21 15:46:27.778689861 +0200
 +++ xmms2-0.5DrLecter/src/include/xmms/wscript	2023-05-21 16:22:50.510198323 +0200
 @@ -12,8 +12,8 @@ def configure(conf):

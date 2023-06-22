@@ -2,7 +2,7 @@
 #
 # Conditional build:
 %bcond_with	efl	# ecore client library
-%bcond_with	sdl	# sdlvis client (no build system since 0.2DrJekyll)
+%bcond_without	sdl	# SDL clients
 %bcond_with	java	# Java/JNI module (removed in 0.2DrJekyll)
 %bcond_without	perl	# Perl module
 %bcond_with	python	# Python module (doesn't build with python 2.7)
@@ -12,26 +12,24 @@
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.5DrLecter
+Version:	0.6DrMattDestruction
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	https://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	9033ef15be9069ef43aeb4b6360a4d36
+# Source0-md5:	954fb9c76b5db5e324a105e81b273200
 Patch0:		%{name}-tabs.patch
 Patch1:		%{name}-openssl.patch
 Patch2:		%{name}-format.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-ffmpeg.patch
 Patch5:		%{name}-ruby.patch
-Patch6:		%{name}-mdns-launcher-conflict.patch
+Patch6:		%{name}-perl.patch
 Patch7:		%{name}-waf.patch
 Patch8:		%{name}-version.patch
+Patch9:		%{name}-boost.patch
+Patch10:	%{name}-link.patch
 URL:		http://xmms2.xmms.se/
-%if %{with sdl}
-BuildRequires:	SDL-devel
-BuildRequires:	SDL_ttf-devel
-%endif
 BuildRequires:	alsa-lib-devel
 BuildRequires:	avahi-devel
 BuildRequires:	avahi-compat-libdns_sd-devel
@@ -53,6 +51,7 @@ BuildRequires:	libmad-devel
 BuildRequires:	libmodplug-devel
 BuildRequires:	libmms-devel
 BuildRequires:	libmpcdec-devel
+BuildRequires:	libmpg123-devel >= 1.5.1
 BuildRequires:	libofa-devel
 BuildRequires:	libogg-devel
 BuildRequires:	libsamplerate-devel
@@ -77,6 +76,11 @@ BuildRequires:	sed >= 4.0
 BuildRequires:	speex-devel
 BuildRequires:	sqlite3-devel >= 3.2
 BuildRequires:	swig >= 1.3.25
+BuildRequires:	wavpack-devel
+%if %{with sdl}
+BuildRequires:	SDL-devel
+BuildRequires:	libvisual-devel
+%endif
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -297,6 +301,19 @@ This package enables MOD decoding through modplug decoding for xmms2.
 %description input-modplug -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie MOD przez xmms2 poprzez modplug.
 
+%package input-mpg123
+Summary:	mpg123-based MP3 decoder
+Summary(pl.UTF-8):	Oparty na mpg123 dekoder MP3
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+Requires:	libmpg123 >= 1.5.1
+
+%description input-mpg123
+This package enables MP3 decoding for xmms2.
+
+%description input-mpg123 -l pl.UTF-8
+Ten pakiet umożliwia dekodowanie MP3 przez xmms2.
+
 %package input-musepack
 Summary:	MPC decoder
 Summary(pl.UTF-8):	Dekoder MPC
@@ -356,6 +373,18 @@ This package enables WAV decoding for xmms2.
 
 %description input-wav -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie WAV przez xmms2.
+
+%package input-wavpack
+Summary:	Wavpack decoder
+Summary(pl.UTF-8):	Dekoder Wavpack
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description input-wavpack
+This package enables wavpack decoding for xmms2.
+
+%description input-wavpack -l pl.UTF-8
+Ten pakiet umożliwia dekodowanie wavpack przez xmms2.
 
 %package output-alsa
 Summary:	ALSA output
@@ -515,6 +544,8 @@ xmms2.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
+%patch9 -p1
+%patch10 -p1
 
 # sanitize version to avoid invalid format in .pc files
 %{__sed} -i -e '/^BASEVERSION=/ s/ \(Dr[^ ]*\)/\1/' wscript
@@ -575,15 +606,20 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/xmms2-launcher
 %attr(755,root,root) %{_bindir}/xmms2d
 %attr(755,root,root) %{_libdir}/libxmmsclient.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libxmmsclient.so.4
+%attr(755,root,root) %ghost %{_libdir}/libxmmsclient.so.5
+%attr(755,root,root) %{_libdir}/libxmmsclient++.so.*.*.*
+%attr(755,root,root) %ghost %{_libdir}/libxmmsclient++.so.3
 %dir %{_libdir}/%{name}
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_apefile.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_asf.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_asx.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_cue.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_diskwrite.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_equalizer.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_file.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_flv.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_gme.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_html.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_icymetaint.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_id3v2.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_karaoke.so
@@ -594,6 +630,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_nulstripper.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_pls.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_replaygain.so
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_tta.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_xml.so
 # XXX: requires libofa, but which kind of plugin is it? (fingerprint)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_ofa.so
@@ -601,8 +638,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_rss.so
 # XXX: requires libxml2, playlist reader
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_xspf.so
-# disabled since 0.2DrEvil ("broken=True")
-#%attr(755,root,root) %{_libdir}/%{name}/libxmms_html.so
 %{_datadir}/%{name}
 %{_pixmapsdir}/xmms2*.png
 %{_pixmapsdir}/xmms2*.svg
@@ -615,12 +650,14 @@ rm -rf $RPM_BUILD_ROOT
 ### clients
 %files client-cli
 %defattr(644,root,root,755)
+%attr(755,root,root) %{_bindir}/nyxmms2
 %attr(755,root,root) %{_bindir}/xmms2
 %attr(755,root,root) %{_bindir}/xmms2-et
 %attr(755,root,root) %{_bindir}/xmms2-find-avahi
 %attr(755,root,root) %{_bindir}/xmms2-mdns-avahi
 %attr(755,root,root) %{_bindir}/xmms2-mdns-dnssd
 %attr(755,root,root) %{_bindir}/xmms2-mlib-updater
+%{_mandir}/man1/nyxmms2.1*
 %{_mandir}/man1/xmms2.1*
 %{_mandir}/man1/xmms2-et.1*
 %{_mandir}/man1/xmms2-mdns-avahi.1*
@@ -628,7 +665,10 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with sdl}
 %files client-sdlvis
 %defattr(644,root,root,755)
-%attr(755,root,root) %{_bindir}/sdl-vis
+%attr(755,root,root) %{_bindir}/vistest
+%attr(755,root,root) %{_bindir}/vistest-fft
+%attr(755,root,root) %{_bindir}/xmms2-libvisual
+%attr(755,root,root) %{_bindir}/xmms2-ripper
 %endif
 
 %if %{with efl}
@@ -719,6 +759,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_modplug.so
 
+%files input-mpg123
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_mpg123.so
+
 %files input-musepack
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_musepack.so
@@ -738,6 +782,10 @@ rm -rf $RPM_BUILD_ROOT
 %files input-wav
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_wave.so
+
+%files input-wavpack
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_wavpack.so
 
 ### output
 %files output-alsa
@@ -767,8 +815,6 @@ rm -rf $RPM_BUILD_ROOT
 %files transport-curl
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_curl.so
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_lastfm.so
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_lastfmeta.so
 
 %files transport-daap
 %defattr(644,root,root,755)
@@ -789,12 +835,12 @@ rm -rf $RPM_BUILD_ROOT
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libxmmsclient.so
+%attr(755,root,root) %{_libdir}/libxmmsclient++.so
 %attr(755,root,root) %{_libdir}/libxmmsclient-glib.so
 %attr(755,root,root) %{_libdir}/libxmmsclient++-glib.so
 %{_includedir}/xmms2
 %{_pkgconfigdir}/xmms2-client.pc
-# requires old boost.signal
-#%{_pkgconfigdir}/xmms2-client-cpp.pc
+%{_pkgconfigdir}/xmms2-client-cpp.pc
 %{_pkgconfigdir}/xmms2-client-cpp-glib.pc
 %{_pkgconfigdir}/xmms2-client-glib.pc
 %{_pkgconfigdir}/xmms2-plugin.pc
