@@ -1,0 +1,22 @@
+--- xmms2-0.7DrNo/src/plugins/sc68/wscript.orig	2010-02-19 18:43:54.000000000 +0100
++++ xmms2-0.7DrNo/src/plugins/sc68/wscript	2023-06-24 10:14:52.663648483 +0200
+@@ -1,7 +1,7 @@
+ from waftools.plugin import plugin
+ 
+ def plugin_configure(conf):
+-	if not conf.check_cfg(path="sc68-config", package="sc68", uselib_store="sc68", atleast_version="2.3.0", args="--cflags --libs"):
++	if not conf.check_cfg(path="sc68-config", package="sc68", uselib_store="sc68", atleast_version="2.2.1", args="--cflags --libs"):
+ 		return False
+ 
+ 	return True
+--- xmms2-0.7DrNo/src/plugins/sc68/sc68.c.orig	2010-02-19 18:43:54.000000000 +0100
++++ xmms2-0.7DrNo/src/plugins/sc68/sc68.c	2023-06-24 10:24:06.463981622 +0200
+@@ -237,7 +237,7 @@ sc68_load_track (api68_disk_t disk, int
+ 		return -1;
+ 	}
+ 
+-	if (api68_play (sc68_api, track, 1)) {
++	if (api68_play (sc68_api, track)) {
+ 		xmms_log_info ("Could not set track on sc68 disk");
+ 		xmms_error_set (error, XMMS_ERROR_GENERIC, sc68_error ());
+ 		return -1;

@@ -12,36 +12,36 @@
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.6DrMattDestruction
+Version:	0.7DrNo
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	https://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	954fb9c76b5db5e324a105e81b273200
+# Source0-md5:	60e50b591078acb6a85cd83de0f2b077
 Patch0:		%{name}-tabs.patch
 Patch1:		%{name}-openssl.patch
-Patch2:		%{name}-format.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-ffmpeg.patch
 Patch5:		%{name}-ruby.patch
-Patch6:		%{name}-perl.patch
 Patch7:		%{name}-waf.patch
 Patch8:		%{name}-version.patch
-Patch9:		%{name}-boost.patch
 Patch10:	%{name}-link.patch
+Patch11:	%{name}-sc68.patch
 URL:		http://xmms2.xmms.se/
 BuildRequires:	alsa-lib-devel
 BuildRequires:	avahi-devel
 BuildRequires:	avahi-compat-libdns_sd-devel
 BuildRequires:	avahi-glib-devel
-BuildRequires:	curl-devel >= 7.11.2
+BuildRequires:	boost-devel
+BuildRequires:	curl-devel >= 7.12.0
 %{?with_efl:BuildRequires:	ecore-devel}
 BuildRequires:	faad2-devel >= 2
 BuildRequires:	ffmpeg-devel >= 2
 BuildRequires:	fftw3-single-devel >= 3
 %{?with_flac:BuildRequires:	flac-devel >= 1.1.3}
+BuildRequires:	game-music-emu-devel
 BuildRequires:	gamin-devel
-BuildRequires:	glib2-devel >= 1:2.6.0
+BuildRequires:	glib2-devel >= 1:2.8.0
 BuildRequires:	jack-audio-connection-kit-devel
 %{?with_java:BuildRequires:	jdk}
 BuildRequires:	libao-devel
@@ -66,21 +66,25 @@ BuildRequires:	pkgconfig
 BuildRequires:	pulseaudio-devel
 %if %{with python}
 BuildRequires:	python-Pyrex >= 0.9.4.2
-BuildRequires:	python-devel >= 2.3
+BuildRequires:	python-devel >= 1:2.4
 %endif
 BuildRequires:	python3 >= 1:3.2
 BuildRequires:	rpmbuild(macros) >= 1.277
 %{?with_ruby:BuildRequires:	ruby-modules >= 1:1.8}
+BuildRequires:	sc68-devel
 BuildRequires:	scons >= 4
 BuildRequires:	sed >= 4.0
 BuildRequires:	speex-devel
-BuildRequires:	sqlite3-devel >= 3.2
+BuildRequires:	sqlite3-devel >= 3.5
 BuildRequires:	swig >= 1.3.25
+BuildRequires:	tremor-devel
 BuildRequires:	wavpack-devel
 %if %{with sdl}
 BuildRequires:	SDL-devel
 BuildRequires:	libvisual-devel
 %endif
+Requires:	glib2 >= 1:2.8.0
+Requires:	sqlite3 >= 3.5
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -96,6 +100,7 @@ Summary:	Simple text-ui for xmms2
 Summary(pl.UTF-8):	Prosty tekstowy interfejs dla xmms2
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
+Requires:	glib2 >= 1:2.8.0
 
 %description client-cli
 Simple text-ui for xmms2.
@@ -145,6 +150,7 @@ Summary:	GLib client library
 Summary(pl.UTF-8):	Biblioteka kliencka GLib
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
+Requires:	glib2 >= 1:2.8.0
 
 %description client-lib-glib
 GLib client library.
@@ -277,6 +283,19 @@ This package enables FLAC decoding for xmms2.
 %description input-flac -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie FLAC przez xmms2.
 
+%package input-gme
+Summary:	Game Music decorer
+Summary(pl.UTF-8):	Dekoder muzyki z gier
+Group:		Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description input-gme
+This package enables Game Music Emulator decoding for xmms2.
+
+%description input-gme -l pl.UTF-8
+Ten pakiet umożliwia dekodowanie muzyki z gier retro przez xmms2
+poprzez Game Music Emulator.
+
 %package input-mad
 Summary:	mad-based MP3 decoder
 Summary(pl.UTF-8):	Oparty na mad dekoder MP3
@@ -326,6 +345,19 @@ This package enables MPC decoding for xmms2.
 %description input-musepack -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie MPC przez xmms2.
 
+%package input-sc68
+Summary:	sc68 decoder
+Summary(pl.UTF-8):	Dekoder sc68
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description input-sc68
+This package enables Atari ST/Amiga music decoding for xmms2.
+
+%description input-sc68 -l pl.UTF-8
+Ten pakiet umożliwia dekodowanie muzyki z Atari ST i Amigi przez
+xmms2.
+
 %package input-sid
 Summary:	SID decoder
 Summary(pl.UTF-8):	Dekoder SID
@@ -349,6 +381,19 @@ This package enables speex decoding for xmms2.
 
 %description input-speex -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie speex przez xmms2.
+
+%package input-tremor
+Summary:	Ogg/Vorbis decoder using tremor library
+Summary(pl.UTF-8):	Dekoder Ogg/Vorbis wykorzystujący bibliotekę tremor
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description input-tremor
+This package enables Ogg/Vorbis decoding for xmms2 via tremor library.
+
+%description input-tremor -l pl.UTF-8
+Ten pakiet umożliwia dekodowanie Ogg/Vorbis przez xmms2 poprzez
+bibliotekę tremor.
 
 %package input-vorbis
 Summary:	Ogg/Vorbis decoder
@@ -463,6 +508,7 @@ Summary:	HTTP curl transport
 Summary(pl.UTF-8):	Transport HTTP poprzez curl
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
+Requires:	curl-libs >= 7.12.0
 
 %description transport-curl
 This package contains a HTTP transport for xmms2.
@@ -524,6 +570,7 @@ Summary:	Development libraries and header files
 Summary(pl.UTF-8):	Biblioteki programistyczne i pliki nagłówkowe
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
+Requires:	glib2-devel >= 1:2.8.0
 
 %description devel
 This is the package containing the development libaries and header
@@ -537,15 +584,13 @@ xmms2.
 %setup -q
 %patch0 -p1
 %patch1 -p1
-%patch2 -p1
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
-%patch6 -p1
 %patch7 -p1
 %patch8 -p1
-%patch9 -p1
 %patch10 -p1
+%patch11 -p1
 
 # sanitize version to avoid invalid format in .pc files
 %{__sed} -i -e '/^BASEVERSION=/ s/ \(Dr[^ ]*\)/\1/' wscript
@@ -570,8 +615,8 @@ CXXFLAGS="%{rpmcxxflags} %{rpmcppflags} $(pkg-config --cflags smbclient)" \
 LDFLAGS="%{rpmldflags}" \
 ./waf configure -v \
 	--prefix=%{_prefix} \
-	--with-libdir=%{_libdir} \
-	--with-mandir=%{_mandir} \
+	--libdir=%{_libdir} \
+	--mandir=%{_mandir} \
 	--with-perl-archdir=%{perl_vendorarch} \
 	--with-ruby-archdir=%{ruby_vendorarchdir} \
 	--with-ruby-libdir=%{ruby_vendorlibdir} \
@@ -606,9 +651,9 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/xmms2-launcher
 %attr(755,root,root) %{_bindir}/xmms2d
 %attr(755,root,root) %{_libdir}/libxmmsclient.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libxmmsclient.so.5
+%attr(755,root,root) %ghost %{_libdir}/libxmmsclient.so.6
 %attr(755,root,root) %{_libdir}/libxmmsclient++.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libxmmsclient++.so.3
+%attr(755,root,root) %ghost %{_libdir}/libxmmsclient++.so.4
 %dir %{_libdir}/%{name}
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_apefile.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_asf.so
@@ -618,7 +663,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_equalizer.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_file.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_flv.so
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_gme.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_html.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_icymetaint.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_id3v2.so
@@ -751,6 +795,10 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_flac.so
 %endif
 
+%files input-gme
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_gme.so
+
 %files input-mad
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_mad.so
@@ -767,6 +815,10 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_musepack.so
 
+%files input-sc68
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_sc68.so
+
 %files input-sid
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_sid.so
@@ -774,6 +826,10 @@ rm -rf $RPM_BUILD_ROOT
 %files input-speex
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_speex.so
+
+%files input-tremor
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_tremor.so
 
 %files input-vorbis
 %defattr(644,root,root,755)

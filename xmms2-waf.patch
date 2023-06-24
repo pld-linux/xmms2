@@ -1,33 +1,18 @@
---- xmms2-0.6DrMattDestruction/wscript.orig	2009-04-21 19:51:11.000000000 +0200
-+++ xmms2-0.6DrMattDestruction/wscript	2023-05-22 10:12:54.089044360 +0200
-@@ -278,8 +278,6 @@ def configure(conf):
+--- xmms2-0.7DrNo/wscript.orig	2023-06-23 06:27:29.055856784 +0200
++++ xmms2-0.7DrNo/wscript	2023-06-23 06:28:26.602468011 +0200
+@@ -275,7 +275,6 @@ def configure(conf):
          conf.check_message("uncommitted changes", "", bool(changed))
          conf.env["VERSION"] = BASEVERSION + " (git commit: %s%s)" % (nam, dirty)
  
 -    conf.env["CCFLAGS"] = Utils.to_list(conf.env["CCFLAGS"]) + ['-g', '-O0']
+     for warning in ('all',
+                     'no-format-extra-args',
+                     'no-format-zero-length',
+@@ -295,7 +294,6 @@ def configure(conf):
+             # autogenerate uselib definitions to disable warnings
+             conf.env["CCFLAGS_NO%s" % warning.replace("-","").upper()] = ["-Wno-%s" % warning]
+ 
 -    conf.env["CXXFLAGS"] = Utils.to_list(conf.env["CXXFLAGS"]) + ['-g', '-O0']
      conf.env['XMMS_PKGCONF_FILES'] = []
      conf.env['XMMS_OUTPUT_PLUGINS'] = [(-1, "NONE")]
  
-@@ -297,7 +295,7 @@ def configure(conf):
-         conf.env['PKGCONFIGDIR'] = Options.options.pkgconfigdir
-         print(conf.env['PKGCONFIGDIR'])
-     else:
--        conf.env['PKGCONFIGDIR'] = os.path.join(conf.env["PREFIX"], "lib", "pkgconfig")
-+        conf.env['PKGCONFIGDIR'] = os.path.join(conf.env["LIBDIR"], "pkgconfig")
- 
-     if Options.options.config_prefix:
-         for dir in Options.options.config_prefix:
---- xmms2-0.5DrLecter/src/include/xmms/wscript.orig	2023-05-21 15:46:27.778689861 +0200
-+++ xmms2-0.5DrLecter/src/include/xmms/wscript	2023-05-21 16:22:50.510198323 +0200
-@@ -12,8 +12,8 @@ def configure(conf):
- 
-     defs = {}
- 
--    defs['PKGLIBDIR'] = os.path.join(conf.env['PREFIX'],
--                                     'lib', 'xmms2')
-+    defs['PKGLIBDIR'] = os.path.join(conf.env['LIBDIR'],
-+                                     'xmms2')
-     defs['BINDIR']    = conf.env['BINDIR']
-     defs['SHAREDDIR'] = os.path.join(conf.env['PREFIX'],
-                                      'share', 'xmms2')

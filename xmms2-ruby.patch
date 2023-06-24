@@ -1,7 +1,11 @@
---- xmms2-0.6DrMattDestruction/waftools/ruby.py.orig	2009-04-21 19:51:11.000000000 +0200
-+++ xmms2-0.6DrMattDestruction/waftools/ruby.py	2023-05-22 09:39:14.409985899 +0200
-@@ -62,9 +62,9 @@ def check_ruby_ext_devel(conf):
+--- xmms2-0.7DrNo/waftools/ruby.py.orig	2023-06-23 06:13:20.083662855 +0200
++++ xmms2-0.7DrNo/waftools/ruby.py	2023-06-23 06:23:46.506545435 +0200
+@@ -63,12 +63,12 @@ def check_ruby_ext_devel(conf):
      version = conf.env['RUBY_VERSION']
+ 
+     def ruby_get_config(key):
+-        return Utils.cmd_output(ruby + " -rrbconfig -e 'print Config::CONFIG[\"" + key + "\"]'").strip()
++        return Utils.cmd_output(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"" + key + "\"]'").strip()
  
      if version >= (1, 9, 0):
 -        ruby_h = Utils.cmd_output(ruby + " -rrbconfig -e 'puts File.exist?(Config::CONFIG[\"rubyhdrdir\"] + \"/ruby.h\")'").strip()
@@ -12,106 +16,49 @@
  
      if ruby_h != 'true':
          conf.check_message('ruby', 'header file', False)
-@@ -72,18 +72,18 @@ def check_ruby_ext_devel(conf):
+@@ -76,18 +76,18 @@ def check_ruby_ext_devel(conf):
  
      conf.check_message('ruby', 'header file', True)
  
 -    archdir = Utils.cmd_output(ruby + " -rrbconfig -e 'puts \"%s\" % [].fill(Config::CONFIG[\"archdir\"], 0..1)'").strip()
 +    archdir = Utils.cmd_output(ruby + " -rrbconfig -e 'puts \"%s\" % [].fill(RbConfig::CONFIG[\"archdir\"], 0..1)'").strip()
-     conf.env["CPPPATH_ruby"] = [archdir]
-     conf.env["LINKFLAGS_ruby"] = '-L%s' % archdir
+     conf.env["CPPPATH_RUBY"] = [archdir]
+     conf.env["LINKFLAGS_RUBY"] = '-L%s' % archdir
  
      if version >= (1, 9, 0):
 -        incpaths = Utils.cmd_output(ruby + " -rrbconfig -e 'puts Config::CONFIG[\"rubyhdrdir\"]'").strip()
 +        incpaths = Utils.cmd_output(ruby + " -rrbconfig -e 'puts RbConfig::CONFIG[\"rubyhdrdir\"]'").strip()
-         conf.env["CPPPATH_ruby"] += [incpaths]
+         conf.env["CPPPATH_RUBY"] += [incpaths]
  
 -        incpaths = Utils.cmd_output(ruby + " -rrbconfig -e 'puts File.join(Config::CONFIG[\"rubyhdrdir\"], Config::CONFIG[\"arch\"])'").strip()
 +        incpaths = Utils.cmd_output(ruby + " -rrbconfig -e 'puts File.join(RbConfig::CONFIG[\"rubyhdrdir\"], RbConfig::CONFIG[\"arch\"])'").strip()
-         conf.env["CPPPATH_ruby"] += [incpaths]
+         conf.env["CPPPATH_RUBY"] += [incpaths]
  
 -    ldflags = Utils.cmd_output(ruby + " -rrbconfig -e 'print Config::CONFIG[\"LDSHARED\"]'").strip()
 +    ldflags = Utils.cmd_output(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"LDSHARED\"]'").strip()
  
      # ok this is really stupid, but the command and flags are combined.
      # so we try to find the first argument...
-@@ -97,25 +97,25 @@ def check_ruby_ext_devel(conf):
- 
-     conf.env["LINKFLAGS_ruby"] += " " + " ".join(flags)
- 
--    ldflags = Utils.cmd_output(ruby + " -rrbconfig -e 'print Config::CONFIG[\"LIBS\"]'").strip()
-+    ldflags = Utils.cmd_output(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"LIBS\"]'").strip()
-     conf.env["LINKFLAGS_ruby"] += " " + ldflags
--    ldflags = Utils.cmd_output(ruby + " -rrbconfig -e 'print Config::CONFIG[\"LIBRUBYARG_SHARED\"]'").strip()
-+    ldflags = Utils.cmd_output(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"LIBRUBYARG_SHARED\"]'").strip()
-     conf.env["LINKFLAGS_ruby"] += " " + ldflags
- 
--    cflags = Utils.cmd_output(ruby + " -rrbconfig -e 'print Config::CONFIG[\"CCDLFLAGS\"]'").strip()
-+    cflags = Utils.cmd_output(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"CCDLFLAGS\"]'").strip()
-     conf.env["CCFLAGS_ruby"] = cflags
- 
+@@ -113,14 +113,14 @@ def check_ruby_ext_devel(conf):
      if Options.options.rubyarchdir:
-         conf.env["ARCHDIR_ruby"] = Options.options.rubyarchdir
+         conf.env["ARCHDIR_RUBY"] = Options.options.rubyarchdir
      else:
--        conf.env["ARCHDIR_ruby"] = Utils.cmd_output(ruby + " -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'").strip()
-+        conf.env["ARCHDIR_ruby"] = Utils.cmd_output(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"sitearchdir\"]'").strip()
+-        conf.env["ARCHDIR_RUBY"] = Utils.cmd_output(ruby + " -rrbconfig -e 'print Config::CONFIG[\"sitearchdir\"]'").strip()
++        conf.env["ARCHDIR_RUBY"] = Utils.cmd_output(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"sitearchdir\"]'").strip()
  
      if Options.options.rubylibdir:
-         conf.env["LIBDIR_ruby"] = Options.options.rubylibdir
+         conf.env["LIBDIR_RUBY"] = Options.options.rubylibdir
      else:
--        conf.env["LIBDIR_ruby"] = Utils.cmd_output(ruby + " -rrbconfig -e 'print Config::CONFIG[\"sitelibdir\"]'").strip()
-+        conf.env["LIBDIR_ruby"] = Utils.cmd_output(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"sitelibdir\"]'").strip()
+-        conf.env["LIBDIR_RUBY"] = Utils.cmd_output(ruby + " -rrbconfig -e 'print Config::CONFIG[\"sitelibdir\"]'").strip()
++        conf.env["LIBDIR_RUBY"] = Utils.cmd_output(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"sitelibdir\"]'").strip()
  
 -    conf.env['rubyext_PATTERN'] = '%s.' + Utils.cmd_output(ruby + " -rrbconfig -e 'print Config::CONFIG[\"DLEXT\"]'").strip()
 +    conf.env['rubyext_PATTERN'] = '%s.' + Utils.cmd_output(ruby + " -rrbconfig -e 'print RbConfig::CONFIG[\"DLEXT\"]'").strip()
  
-     return True
- 
---- xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_xmmsclient.c.orig	2023-05-14 19:24:29.670968613 +0200
-+++ xmms2-0.2DrJekyll/src/clients/lib/ruby/rb_xmmsclient.c	2023-05-14 19:29:16.606080819 +0200
-@@ -1371,10 +1371,10 @@ parse_string_array (VALUE value)
- 	if (!NIL_P (rb_check_array_type (value))) {
- 		struct RArray *ary = RARRAY (value);
- 
--		ret = malloc (sizeof (char *) * (ary->len + 1));
-+		ret = malloc (sizeof (char *) * (RARRAY_LEN(ary) + 1));
- 
--		for (i = 0; i < ary->len; i++)
--			ret[i] = StringValuePtr (ary->ptr[i]);
-+		for (i = 0; i < RARRAY_LEN(ary); i++)
-+			ret[i] = StringValuePtr (RARRAY_PTR(ary)[i]);
- 
- 		ret[i] = NULL;
- 	} else {
-@@ -1451,10 +1451,10 @@ parse_string_array2 (VALUE value)
- 		struct RArray *ary = RARRAY (value);
- 		int i;
- 
--		for (i = 0; i < ary->len; i++) {
-+		for (i = 0; i < RARRAY_LEN(ary); i++) {
- 			xmmsv_t *elem;
- 
--			elem = xmmsv_new_string (StringValuePtr (ary->ptr[i]));
-+			elem = xmmsv_new_string (StringValuePtr (RARRAY_PTR(ary)[i]));
- 			xmmsv_list_append (list, elem);
- 			xmmsv_unref (elem);
- 		}
+     # Change some strings to a list
+     conf.env["LINKFLAGS_RUBY"] = Utils.to_list(conf.env["LINKFLAGS_RUBY"])
 --- xmms2-0.5DrLecter/src/clients/lib/ruby/rb_collection.c.orig	2008-06-15 19:31:38.000000000 +0200
 +++ xmms2-0.5DrLecter/src/clients/lib/ruby/rb_collection.c	2023-05-21 15:05:06.452132360 +0200
-@@ -241,10 +241,10 @@ c_coll_idlist_set (VALUE self, VALUE ids
- 	COLL_METHOD_HANDLER_HEADER
- 
- 	rb_ary = RARRAY (ids);
--	ary = malloc (sizeof (unsigned int *) * (rb_ary->len + 1));
-+	ary = malloc (sizeof (unsigned int *) * (RARRAY_LEN(rb_ary) + 1));
- 
--	for (i = 0; i < rb_ary->len; i++)
--		ary[i] = NUM2UINT (rb_ary->ptr[i]);
-+	for (i = 0; i < RARRAY_LEN(rb_ary); i++)
-+		ary[i] = NUM2UINT (RARRAY_PTR(rb_ary)[i]);
- 
- 	ary[i] = 0;
- 
 @@ -285,8 +285,8 @@ attrs_inspect_cb (VALUE args, VALUE s)
  {
  	VALUE key, value;
