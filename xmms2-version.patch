@@ -1,11 +1,11 @@
---- xmms2-0.7DrNo/wscript.orig	2023-06-23 06:29:12.321345610 +0200
-+++ xmms2-0.7DrNo/wscript	2023-06-23 06:29:55.905086544 +0200
-@@ -273,7 +273,7 @@ def configure(conf):
-         if changed:
-             dirty="-dirty"
-         conf.check_message("uncommitted changes", "", bool(changed))
--        conf.env["VERSION"] = BASEVERSION + " (git commit: %s%s)" % (nam, dirty)
-+        conf.env["VERSION"] = BASEVERSION
+--- xmms2-0.8DrO_o/wscript.orig	2023-06-24 11:34:31.911090412 +0200
++++ xmms2-0.8DrO_o/wscript	2023-06-24 11:35:23.207479182 +0200
+@@ -293,7 +293,7 @@ def configure(conf):
+     else:
+         dirty = changed and "-dirty" or ""
+         conf.msg("uncommited changed", changed and "yes" or "no")
+-        conf.env.VERSION = "%s (git commit: %s%s)" % (BASEVERSION, nam, dirty)
++        conf.env.VERSION = BASEVERSION
  
-     for warning in ('all',
-                     'no-format-extra-args',
+     if conf.options.with_profiling:
+         conf.env.with_profiling = True

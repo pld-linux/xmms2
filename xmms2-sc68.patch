@@ -1,14 +1,13 @@
---- xmms2-0.7DrNo/src/plugins/sc68/wscript.orig	2010-02-19 18:43:54.000000000 +0100
-+++ xmms2-0.7DrNo/src/plugins/sc68/wscript	2023-06-24 10:14:52.663648483 +0200
-@@ -1,7 +1,7 @@
- from waftools.plugin import plugin
+--- xmms2-0.8DrO_o/src/plugins/sc68/wscript.orig	2023-06-24 11:36:55.240313931 +0200
++++ xmms2-0.8DrO_o/src/plugins/sc68/wscript	2023-06-24 11:44:47.417755926 +0200
+@@ -2,6 +2,6 @@ from waftools.plugin import plugin
  
  def plugin_configure(conf):
--	if not conf.check_cfg(path="sc68-config", package="sc68", uselib_store="sc68", atleast_version="2.3.0", args="--cflags --libs"):
-+	if not conf.check_cfg(path="sc68-config", package="sc68", uselib_store="sc68", atleast_version="2.2.1", args="--cflags --libs"):
- 		return False
+     conf.check_cfg(path="sc68-config", package="sc68", uselib_store="sc68",
+-            atleast_version="2.3.0", args="--cflags --libs")
++            atleast_version="2.2.1", args="--cflags --libs")
  
- 	return True
+ configure, build = plugin('sc68', configure=plugin_configure, libs=["sc68"])
 --- xmms2-0.7DrNo/src/plugins/sc68/sc68.c.orig	2010-02-19 18:43:54.000000000 +0100
 +++ xmms2-0.7DrNo/src/plugins/sc68/sc68.c	2023-06-24 10:24:06.463981622 +0200
 @@ -237,7 +237,7 @@ sc68_load_track (api68_disk_t disk, int

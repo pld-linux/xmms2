@@ -1,0 +1,11 @@
+--- xmms2-0.8DrO_o/src/clients/medialib-updater/main.c.orig	2011-10-20 21:26:08.000000000 +0200
++++ xmms2-0.8DrO_o/src/clients/medialib-updater/main.c	2023-06-24 12:43:46.711915262 +0200
+@@ -40,7 +40,7 @@ static void on_directory_event (GFileMon
+                                 gpointer udata);
+ 
+ /* TODO: Remove once we depend on GLib >= 2.18 */
+-#ifndef HAVE_G_FILE_QUERY_FILE_TYPE
++#if 0
+ static GFileType
+ g_file_query_file_type (GFile *file, GFileQueryInfoFlags flags,
+                         GCancellable *cancellable);

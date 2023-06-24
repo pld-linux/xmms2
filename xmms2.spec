@@ -5,24 +5,24 @@
 %bcond_without	sdl	# SDL clients
 %bcond_with	java	# Java/JNI module (removed in 0.2DrJekyll)
 %bcond_without	perl	# Perl module
-%bcond_with	python	# Python module (doesn't build with python 2.7)
+%bcond_with	python	# Python module
 %bcond_without	ruby	# Ruby modules
 %bcond_without	flac	# flac plugin
 
 Summary:	Client/server based media player system
 Summary(pl.UTF-8):	System odtwarzania multimediów oparty na architekturze klient/serwer
 Name:		xmms2
-Version:	0.7DrNo
+Version:	0.8DrO_o
 Release:	0.1
 License:	LGPL v2.1
 Group:		Applications/Sound
 Source0:	https://downloads.sourceforge.net/xmms2/%{name}-%{version}.tar.bz2
-# Source0-md5:	60e50b591078acb6a85cd83de0f2b077
-Patch0:		%{name}-tabs.patch
+# Source0-md5:	84d5c05a70bfd31ed392a4e3f701eaa3
+Patch0:		%{name}-use-system-waf.patch
 Patch1:		%{name}-openssl.patch
+Patch2:		%{name}-glib.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-ffmpeg.patch
-Patch5:		%{name}-ruby.patch
 Patch7:		%{name}-waf.patch
 Patch8:		%{name}-version.patch
 Patch10:	%{name}-link.patch
@@ -30,7 +30,6 @@ Patch11:	%{name}-sc68.patch
 URL:		http://xmms2.xmms.se/
 BuildRequires:	alsa-lib-devel
 BuildRequires:	avahi-devel
-BuildRequires:	avahi-compat-libdns_sd-devel
 BuildRequires:	avahi-glib-devel
 BuildRequires:	boost-devel
 BuildRequires:	curl-devel >= 7.12.0
@@ -41,7 +40,7 @@ BuildRequires:	fftw3-single-devel >= 3
 %{?with_flac:BuildRequires:	flac-devel >= 1.1.3}
 BuildRequires:	game-music-emu-devel
 BuildRequires:	gamin-devel
-BuildRequires:	glib2-devel >= 1:2.8.0
+BuildRequires:	glib2-devel >= 1:2.18.0
 BuildRequires:	jack-audio-connection-kit-devel
 %{?with_java:BuildRequires:	jdk}
 BuildRequires:	libao-devel
@@ -58,6 +57,7 @@ BuildRequires:	libsamplerate-devel
 BuildRequires:	libshout-devel
 BuildRequires:	libsidplay2-devel
 BuildRequires:	libsmbclient-devel
+BuildRequires:	libsndfile-devel
 BuildRequires:	libstdc++-devel
 BuildRequires:	libvorbis-devel
 BuildRequires:	libxml2-devel >= 2.0
@@ -65,25 +65,25 @@ BuildRequires:	openssl-devel
 BuildRequires:	pkgconfig
 BuildRequires:	pulseaudio-devel
 %if %{with python}
-BuildRequires:	python-Pyrex >= 0.9.4.2
+BuildRequires:	python-Cython >= 0.15.1
 BuildRequires:	python-devel >= 1:2.4
 %endif
 BuildRequires:	python3 >= 1:3.2
 BuildRequires:	rpmbuild(macros) >= 1.277
 %{?with_ruby:BuildRequires:	ruby-modules >= 1:1.8}
 BuildRequires:	sc68-devel
-BuildRequires:	scons >= 4
 BuildRequires:	sed >= 4.0
 BuildRequires:	speex-devel
 BuildRequires:	sqlite3-devel >= 3.5
 BuildRequires:	swig >= 1.3.25
 BuildRequires:	tremor-devel
+BuildRequires:	waf >= 1.6.7
 BuildRequires:	wavpack-devel
 %if %{with sdl}
 BuildRequires:	SDL-devel
 BuildRequires:	libvisual-devel
 %endif
-Requires:	glib2 >= 1:2.8.0
+Requires:	glib2 >= 1:2.18.0
 Requires:	sqlite3 >= 3.5
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -100,7 +100,7 @@ Summary:	Simple text-ui for xmms2
 Summary(pl.UTF-8):	Prosty tekstowy interfejs dla xmms2
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
-Requires:	glib2 >= 1:2.8.0
+Requires:	glib2 >= 1:2.18.0
 
 %description client-cli
 Simple text-ui for xmms2.
@@ -150,7 +150,7 @@ Summary:	GLib client library
 Summary(pl.UTF-8):	Biblioteka kliencka GLib
 Group:		X11/Applications/Sound
 Requires:	%{name} = %{version}-%{release}
-Requires:	glib2 >= 1:2.8.0
+Requires:	glib2 >= 1:2.18.0
 
 %description client-lib-glib
 GLib client library.
@@ -370,6 +370,18 @@ This package enables SID decoding for xmms2.
 %description input-sid -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie SID przez xmms2.
 
+%package input-sndfile
+Summary:	sndfile decoder
+Summary(pl.UTF-8):	Dekoder sndfile
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description input-sndfile
+This package enables sndfile decoding for xmms2.
+
+%description input-sndfile -l pl.UTF-8
+Ten pakiet umożliwia dekodowanie sndfile przez xmms2.
+
 %package input-speex
 Summary:	speex decoder
 Summary(pl.UTF-8):	Dekoder speex
@@ -570,7 +582,7 @@ Summary:	Development libraries and header files
 Summary(pl.UTF-8):	Biblioteki programistyczne i pliki nagłówkowe
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	glib2-devel >= 1:2.8.0
+Requires:	glib2-devel >= 1:2.18.0
 
 %description devel
 This is the package containing the development libaries and header
@@ -584,9 +596,9 @@ xmms2.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 %patch3 -p1
 %patch4 -p1
-%patch5 -p1
 %patch7 -p1
 %patch8 -p1
 %patch10 -p1
@@ -597,7 +609,6 @@ xmms2.
 
 # recode to UTF-8
 for f in \
-	src/clients/cli/xmms2.1 \
 	src/clients/et/xmms2-et.1 \
 	src/clients/launcher/xmms2-launcher.1 \
 	src/clients/mdns/avahi/xmms2-mdns-avahi.1 \
@@ -607,31 +618,38 @@ do
 	%{__mv} "${f}.utf8" "$f"
 done
 
+%{__rm} waf
+
 %build
 CC="%{__cc}" \
 CXX="%{__cxx}" \
 CFLAGS="%{rpmcflags} %{rpmcppflags} $(pkg-config --cflags smbclient)" \
 CXXFLAGS="%{rpmcxxflags} %{rpmcppflags} $(pkg-config --cflags smbclient)" \
 LDFLAGS="%{rpmldflags}" \
-./waf configure -v \
+waf configure -v \
 	--prefix=%{_prefix} \
 	--libdir=%{_libdir} \
 	--mandir=%{_mandir} \
 	--with-perl-archdir=%{perl_vendorarch} \
 	--with-ruby-archdir=%{ruby_vendorarchdir} \
 	--with-ruby-libdir=%{ruby_vendorlibdir} \
-	--without-optionals=python
+	--with-vis-reference-clients \
+	%{!?with_python:--without-optionals=python}
 
-./waf build -v
+waf build -v
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
-./waf install \
+waf install \
 	--destdir=$RPM_BUILD_ROOT
 
 chmod 755 $RPM_BUILD_ROOT%{_libdir}/lib*.so.*.*
 chmod 755 $RPM_BUILD_ROOT%{_libdir}/xmms2/lib*.so
+
+install -d $RPM_BUILD_ROOT%{_mandir}/man3
+pod2man --section=3 $RPM_BUILD_ROOT%{perl_vendorarch}/Audio/XMMSClient.pod $RPM_BUILD_ROOT%{_mandir}/man3/XMMSClient.3pm
+%{__rm} $RPM_BUILD_ROOT%{perl_vendorarch}/Audio/XMMSClient.pod
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -699,9 +717,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/xmms2-et
 %attr(755,root,root) %{_bindir}/xmms2-find-avahi
 %attr(755,root,root) %{_bindir}/xmms2-mdns-avahi
-%attr(755,root,root) %{_bindir}/xmms2-mdns-dnssd
 %attr(755,root,root) %{_bindir}/xmms2-mlib-updater
-%{_mandir}/man1/nyxmms2.1*
 %{_mandir}/man1/xmms2.1*
 %{_mandir}/man1/xmms2-et.1*
 %{_mandir}/man1/xmms2-mdns-avahi.1*
@@ -755,6 +771,7 @@ rm -rf $RPM_BUILD_ROOT
 %{perl_vendorarch}/Audio/XMMSClient
 %dir %{perl_vendorarch}/auto/Audio/XMMSClient
 %attr(755,root,root) %{perl_vendorarch}/auto/Audio/XMMSClient/XMMSClient.so
+%{_mandir}/man3/XMMSClient.3pm*
 %endif
 
 %if %{with python}
@@ -822,6 +839,10 @@ rm -rf $RPM_BUILD_ROOT
 %files input-sid
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_sid.so
+
+%files input-sndfile
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_sndfile.so
 
 %files input-speex
 %defattr(644,root,root,755)
