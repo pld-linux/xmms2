@@ -443,6 +443,18 @@ This package enables wavpack decoding for xmms2.
 %description input-wavpack -l pl.UTF-8
 Ten pakiet umożliwia dekodowanie wavpack przez xmms2.
 
+%package output-airplay
+Summary:	Airplay output
+Summary(pl.UTF-8):	Wyjście Airplay
+Group:		X11/Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description output-airplay
+This package enables Airplay (Airport Express) output for xmms2.
+
+%description output-airplay -l pl.UTF-8
+Ten pakiet udostępnia wyjście Airplay (Airport Express) dla xmms2.
+
 %package output-alsa
 Summary:	ALSA output
 Summary(pl.UTF-8):	Wyjście ALSA
@@ -514,6 +526,42 @@ This package enables PulseAudio output for xmms2.
 
 %description output-pulse -l pl.UTF-8
 Ten pakiet udostępnia wyjście PulseAudio dla xmms2.
+
+%package playlist-rss
+Summary:	RSS playlist support
+Summary(pl.UTF-8):	Obsługa list odtwarzania RSS
+Group:		Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description playlist-rss
+This package enables RSS playlists support for xmms2.
+
+%description playlist-rss -l pl.UTF-8
+Ten pakiet udostępnia obsługę list odtwarzania RSS dla xmms2.
+
+%package playlist-xspf
+Summary:	XSPF playlist support
+Summary(pl.UTF-8):	Obsługa list odtwarzania XSPF
+Group:		Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description playlist-xspf
+This package enables XSPF playlists support for xmms2.
+
+%description playlist-xspf -l pl.UTF-8
+Ten pakiet udostępnia obsługę list odtwarzania XSPF dla xmms2.
+
+%package plugin-ofa
+Summary:	OFA fingerprints calculation
+Summary(pl.UTF-8):	Obliczanie odcisków OFA
+Group:		Applications/Sound
+Requires:	%{name} = %{version}-%{release}
+
+%description plugin-ofa
+This package enables OFA fingerprints calculation for xmms2.
+
+%description plugin-ofa -l pl.UTF-8
+Ten pakiet udostępnia obliczanie odcisków OFA dla xmms2.
 
 %package transport-curl
 Summary:	HTTP curl transport
@@ -665,7 +713,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(644,root,root,755)
-%doc AUTHORS COPYING README TODO
+%doc AUTHORS COPYING README TODO xmms2-0.8DrO_o.ChangeLog
 %attr(755,root,root) %{_bindir}/xmms2-launcher
 %attr(755,root,root) %{_bindir}/xmms2d
 %attr(755,root,root) %{_libdir}/libxmmsclient.so.*.*.*
@@ -694,20 +742,11 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_replaygain.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_tta.so
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_xml.so
-# XXX: requires libofa, but which kind of plugin is it? (fingerprint)
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_ofa.so
-# XXX: input-rss? (requires libxml2)
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_rss.so
-# XXX: requires libxml2, playlist reader
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_xspf.so
 %{_datadir}/%{name}
 %{_pixmapsdir}/xmms2*.png
 %{_pixmapsdir}/xmms2*.svg
 %{_mandir}/man1/xmms2-launcher.1*
 %{_mandir}/man1/xmms2d.1*
-
-# XXX: -output-airplay (R: openssl)
-%attr(755,root,root) %{_libdir}/%{name}/libxmms_airplay.so
 
 ### clients
 %files client-cli
@@ -865,6 +904,10 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_wavpack.so
 
 ### output
+%files output-airplay
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_airplay.so
+
 %files output-alsa
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_alsa.so
@@ -888,6 +931,18 @@ rm -rf $RPM_BUILD_ROOT
 %files output-pulse
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/%{name}/libxmms_pulse.so
+
+%files playlist-rss
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_rss.so
+
+%files playlist-xspf
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_xspf.so
+
+%files plugin-ofa
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/%{name}/libxmms_ofa.so
 
 %files transport-curl
 %defattr(644,root,root,755)
