@@ -5,7 +5,7 @@
 %bcond_without	sdl	# SDL clients
 %bcond_with	java	# Java/JNI module (removed in 0.2DrJekyll)
 %bcond_without	perl	# Perl module
-%bcond_with	python	# Python module
+%bcond_without	python	# Python module
 %bcond_without	ruby	# Ruby modules
 %bcond_without	flac	# flac plugin
 
@@ -23,6 +23,8 @@ Patch1:		%{name}-openssl.patch
 Patch2:		%{name}-glib.patch
 Patch3:		%{name}-modplug.patch
 Patch4:		%{name}-ffmpeg.patch
+Patch5:		%{name}-python3.patch
+Patch6:		%{name}-xmmsc_collection_changed_actions_t-fix.patch
 Patch7:		%{name}-waf.patch
 Patch8:		%{name}-version.patch
 Patch10:	%{name}-link.patch
@@ -64,11 +66,11 @@ BuildRequires:	libxml2-devel >= 2.0
 BuildRequires:	openssl-devel
 BuildRequires:	pkgconfig
 BuildRequires:	pulseaudio-devel
-%if %{with python}
-BuildRequires:	python-Cython >= 0.15.1
-BuildRequires:	python-devel >= 1:2.4
-%endif
 BuildRequires:	python3 >= 1:3.2
+%if %{with python}
+BuildRequires:	python3-Cython >= 0.15.1
+BuildRequires:	python3-devel >= 1:3.2
+%endif
 BuildRequires:	rpmbuild(macros) >= 1.277
 %{?with_ruby:BuildRequires:	ruby-modules >= 1:1.8}
 BuildRequires:	sc68-devel
@@ -201,7 +203,7 @@ Summary:	xmms2 Python bindings
 Summary(pl.UTF-8):	Wiązania Pythona do XMMS2
 Group:		Applications/Sound
 Requires:	%{name} = %{version}-%{release}
-Requires:	python-libs
+Requires:	python3-modules >= 1:3.2
 
 %description client-lib-python
 Python bindings for the xmms2 clientlib.
@@ -647,6 +649,8 @@ xmms2.
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
+%patch5 -p1
+%patch6 -p1
 %patch7 -p1
 %patch8 -p1
 %patch10 -p1
@@ -678,6 +682,7 @@ waf configure -v \
 	--prefix=%{_prefix} \
 	--libdir=%{_libdir} \
 	--mandir=%{_mandir} \
+	--pythondir=%{py3_sitedir} \
 	--with-perl-archdir=%{perl_vendorarch} \
 	--with-ruby-archdir=%{ruby_vendorarchdir} \
 	--with-ruby-libdir=%{ruby_vendorlibdir} \
@@ -816,7 +821,10 @@ rm -rf $RPM_BUILD_ROOT
 %if %{with python}
 %files client-lib-python
 %defattr(644,root,root,755)
-%attr(755,root,root) %{py_sitedir}/xmmsclient.so
+%dir %{py3_sitedir}/xmmsclient
+%attr(755,root,root) %{py3_sitedir}/xmmsclient/xmmsapi.cpython-*.so
+%attr(755,root,root) %{py3_sitedir}/xmmsclient/xmmsvalue.cpython-*.so
+%{py3_sitedir}/xmmsclient/*.py
 %endif
 
 %if %{with ruby}

@@ -66,11 +66,12 @@ diff -up xmms2-0.8DrO_o/src/clients/lib/python/wscript.fixme xmms2-0.8DrO_o/src/
      if not conf.env.PYTHON:
          conf.fatal("python not found")
  
-@@ -112,7 +112,7 @@ def configure(conf):
+@@ -112,7 +112,8 @@ def configure(conf):
                    "files, you should consider reconfiguring with --no-cython")
  
  def options(opt):
 -    opt.tool_options('cython', tooldir = os.path.abspath('waftools'))
++    opt.load('python')
 +    opt.load('cython', tooldir = os.path.abspath('waftools'))
      opt.add_option('--no-cython', action="store_true",
              dest="no_cython", default=False,
