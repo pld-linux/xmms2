@@ -3,7 +3,6 @@
 # Conditional build:
 %bcond_with	efl	# ecore client library
 %bcond_without	sdl	# SDL clients
-%bcond_with	java	# Java/JNI module (removed in 0.2DrJekyll)
 %bcond_without	perl	# Perl module
 %bcond_without	python	# Python module
 %bcond_without	ruby	# Ruby modules
@@ -44,7 +43,6 @@ BuildRequires:	game-music-emu-devel
 BuildRequires:	gamin-devel
 BuildRequires:	glib2-devel >= 1:2.18.0
 BuildRequires:	jack-audio-connection-kit-devel
-%{?with_java:BuildRequires:	jdk}
 BuildRequires:	libao-devel
 BuildRequires:	libcdio-paranoia-devel
 BuildRequires:	libdiscid-devel
@@ -87,6 +85,7 @@ BuildRequires:	libvisual-devel
 %endif
 Requires:	glib2 >= 1:2.18.0
 Requires:	sqlite3 >= 3.5
+Obsoletes:	xmms2-client-lib-java < 0.2
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -172,19 +171,6 @@ Ruby bindings for the xmms2 GLib client library.
 
 %description client-lib-glib-ruby -l pl.UTF-8
 Wiązania Ruby'ego dla biblioteki klienckiej xmms2 GLib.
-
-%package client-lib-java
-Summary:	xmms2 Java bindings
-Summary(pl.UTF-8):	Wiązania Javy do XMMS2
-Group:		Applications/Sound
-Requires:	%{name} = %{version}-%{release}
-Requires:	jre
-
-%description client-lib-java
-Java bindings for the xmms2 clientlib.
-
-%description client-lib-java -l pl.UTF-8
-Wiązania Javy do xmms2.
 
 %package client-lib-perl
 Summary:	Perl client library for XMMS2
@@ -799,13 +785,6 @@ rm -rf $RPM_BUILD_ROOT
 %files client-lib-glib-ruby
 %defattr(644,root,root,755)
 %attr(755,root,root) %{ruby_vendorarchdir}/xmmsclient_glib.so
-%endif
-
-%if %{with java}
-%files client-lib-java
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/libxmms2java.so
-%{_javadir}/xmms2java.jar
 %endif
 
 %if %{with perl}
